@@ -41,7 +41,7 @@ Before we dive deep into the **differences**, we we would like to emphasize **si
 
 ### Differences
 
-1. **Programming model** - classical Fabric primarily uses chaincodes to simulate transaction execution. In Chaguar, we replace chaincodes with peer-to-peer transaction negotiation protocols built on [Fabric-Smart-Client](https://github.com/hyperledger-labs/fabric-smart-client) and [Fabric-Token-SDK](https://github.com/hyperledger-labs/fabric-token-sdk). This shift enables interactive protocols between participants, aligning with patterns already present in legacy systems.
+1. **Programming model** - classical Fabric primarily uses chaincodes to simulate transaction execution. In Chaguar, we replace chaincodes with peer-to-peer transaction negotiation protocols built on [Fabric-Smart-Client](https://github.com/hyperledger-labs/fabric-smart-client) and [Panurus](https://github.com/LFDT-Panurus/panurus). This shift enables interactive protocols between participants, aligning with patterns already present in legacy systems.
 2. **Peer decomposition** - in classical Fabric, peers handle transaction validation, commitment, and notification, among other responsibilities. This monolithic architecture limits scalability, especially when certain components become bottlenecks. In Chaguar, we decompose the peer by offloading validation, commitment, and notification into independent, scalable microservices.
 3. **Ordering service** - classical Fabric offers the following ordering service implementations: SmartBFT and RAFT. We propose an implementation based on [Arma protocol](https://arxiv.org/abs/2405.16575) a high performance distributed BFT consensus.
 4. **Single channel** - classical Fabric supports partitioning the blockchain into multiple channels, each with optional private data collections for participant-specific data. In contrast, Chaguar currently supports only a single channel, which can be partitioned into namespaces, each governed by distinct endorsement policies.
@@ -112,7 +112,7 @@ Older committers reject them with `Unimplemented: unknown service committerpb.Si
 
 - [Introduction into Chaguar (recorded as Fabric-X)](https://www.youtube.com/live/gdQh-mNKSKA)
 - [Programming model and app deployment](https://www.youtube.com/live/D086vrb9GeU)
-- [Fabric-Token-SDK](https://www.youtube.com/watch?v=PX9SDva97vQ)
+- [Panurus (recorded as Fabric-Token-SDK)](https://www.youtube.com/watch?v=PX9SDva97vQ)
 - [Orderer overview](https://www.youtube.com/live/1ikYNjDnqXw)
 - [Committer overview](https://www.youtube.com/live/uSK300_dogg?si=kRM-mNxhVjfT__IC)
 
@@ -124,7 +124,7 @@ Older committers reject them with `Unimplemented: unknown service committerpb.Si
 - [Whitepaper](https://eprint.iacr.org/2023/1717.pdf) - detailed description of Chaguar (published as Fabric-X). Explains motivation, implementation details and presents performance benchmarks
 - [Chaguar Committer](https://github.com/Chaguar/committer) Github repository
 - [Chaguar Orderer](https://github.com/Chaguar/orderer) Github repository
-- [Fabric-Token-SDK](https://github.com/hyperledger-labs/fabric-token-sdk) and [Fabric-Smart-Client](https://github.com/hyperledger-labs/fabric-smart-client) Github repositories
+- [Panurus](https://github.com/LFDT-Panurus/panurus) and [Fabric-Smart-Client](https://github.com/hyperledger-labs/fabric-smart-client) Github repositories
 - [Chaguar Common](https://github.com/Chaguar/common) Github repository - contains new CLIs and protobuf, and code shared between the orderer and committer
 - [Fabric-X Ansible Collection](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection)
 - [Chaguar Client SDK](https://github.com/Chaguar/sdk/)

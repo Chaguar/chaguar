@@ -2,32 +2,32 @@
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# Fabric-X
+# Chaguar
 
-[![Reconfig App Org Integration Test](https://github.com/hyperledger/fabric-x/actions/workflows/reconfig-app-org.yml/badge.svg)](https://github.com/hyperledger/fabric-x/actions/workflows/reconfig-app-org.yml)
+[![Reconfig App Org Integration Test](https://github.com/Chaguar/chaguar/actions/workflows/reconfig-app-org.yml/badge.svg)](https://github.com/Chaguar/chaguar/actions/workflows/reconfig-app-org.yml)
 
 ## Motivation
 
 The adoption of Distributed Ledger Technology (DLT) for critical financial infrastructures like digital assets and currencies (e.g., Central Bank Digital Currencies (CBDCs) , stablecoins, tokenized deposits, tokenized bonds/securities) is hindered by a significant performance gap. Permissioned blockchains such as Hyperledger Fabric, while conceptually suitable, are limited by architectural bottlenecks in their monolithic peer design and consensus mechanisms, preventing them from achieving the required scale.
 
-`Fabric-X` represents a fundamental re-architecture of [Hyperledger Fabric](https://github.com/hyperledger/fabric) that addresses these challenges end-to-end. The monolithic peer is decomposed into independently scalable microservices for endorsement, validation, and committing. To maximize parallelism, a transaction dependency graph was introduced. It enables safe, concurrent validation of transactions across multiple blocks. Complementing the peer redesign, we have introduced Arma, a novel sharded Byzantine Fault Tolerant (BFT) ordering service that dramatically increases throughput by ordering compact transaction digests rather than full transaction payloads. We have implemented and benchmarked this framework with a UTXO-based CBDC application. Our evaluation demonstrates a peak throughput exceeding 200,000 transactions per second (TPS) — two-orders-of-magnitude improvement over the standard implementation.
+`Chaguar` (formerly Fabric-X) represents a fundamental re-architecture of [Hyperledger Fabric](https://github.com/hyperledger/fabric) that addresses these challenges end-to-end. The monolithic peer is decomposed into independently scalable microservices for endorsement, validation, and committing. To maximize parallelism, a transaction dependency graph was introduced. It enables safe, concurrent validation of transactions across multiple blocks. Complementing the peer redesign, we have introduced Arma, a novel sharded Byzantine Fault Tolerant (BFT) ordering service that dramatically increases throughput by ordering compact transaction digests rather than full transaction payloads. We have implemented and benchmarked this framework with a UTXO-based CBDC application. Our evaluation demonstrates a peak throughput exceeding 200,000 transactions per second (TPS) — two-orders-of-magnitude improvement over the standard implementation.
 
-Fabric-X proves that permissioned DLTs can be engineered for national-scale payment systems, providing a resilient and highly performant foundation for practical digital assets and currencies deployments and the integration of advanced, computationally intensive features.
+Chaguar proves that permissioned DLTs can be engineered for national-scale payment systems, providing a resilient and highly performant foundation for practical digital assets and currencies deployments and the integration of advanced, computationally intensive features.
 
 ## Quick Navigation
 
-- [Architecture Overview](https://github.com/hyperledger/fabric-x#architecture-overview) - diagrams and description of the Fabric-X
-- [Fabric-X-Orderer](https://github.com/hyperledger/fabric-x-orderer) - is a BFT orderer service which implements ARMA protocol. [Docs](https://github.com/hyperledger/fabric-x-orderer/tree/main/docs), [Issues](https://github.com/hyperledger/fabric-x-orderer/issues)
-- [Fabric-X-Committer](https://github.com/hyperledger/fabric-x-committer) - is a post‑ordering transaction processing system built as microservices. [Docs](https://hyperledger.github.io/fabric-x-committer/), [Issues](https://github.com/hyperledger/fabric-x-committer/issues)
-- [Fabric-X-Samples](https://github.com/hyperledger/fabric-x-samples) - is the official home repository for sample applications built on top of Hyperledger Fabric-X.
-- [Fabric-X-EVM](https://github.com/hyperledger/fabric-x-evm) - makes Hyperledger Fabric-x (and Fabric) compatible with the Ethereum ecosystem. [Docs](https://github.com/hyperledger/fabric-x-evm/blob/main/docs/ARCHITECTURE.md), [Issues](https://github.com/hyperledger/fabric-x-evm/issues)
-- [Fabric-X Ansible](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection) - is an Ansible collection for deploying Fabric-X. [Docs](https://lf-decentralized-trust-labs.github.io/fabric-x-ansible-collection/), [Issues](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection/issues)
+- [Architecture Overview](#architecture-overview) - diagrams and description of Chaguar
+- [Chaguar Orderer](https://github.com/Chaguar/orderer) - is a BFT orderer service which implements ARMA protocol. [Docs](https://github.com/Chaguar/orderer/tree/main/docs), [Issues](https://github.com/Chaguar/orderer/issues)
+- [Chaguar Committer](https://github.com/Chaguar/committer) - is a post‑ordering transaction processing system built as microservices. [Docs](https://chaguar.github.io/committer/), [Issues](https://github.com/Chaguar/committer/issues)
+- [Chaguar Samples](https://github.com/Chaguar/samples) - is the official home repository for sample applications built on top of Chaguar.
+- [Chaguar EVM](https://github.com/Chaguar/evm) - makes Chaguar (and Fabric) compatible with the Ethereum ecosystem. [Docs](https://github.com/Chaguar/evm/blob/main/docs/ARCHITECTURE.md), [Issues](https://github.com/Chaguar/evm/issues)
+- [Fabric-X Ansible](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection) - is an Ansible collection for deploying Chaguar. [Docs](https://lf-decentralized-trust-labs.github.io/fabric-x-ansible-collection/), [Issues](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection/issues)
 
 ## Architecture Overview
 
-Figure below shows the high-level architecture differences between `Fabric Classic` and `Fabric-X`.
+Figure below shows the high-level architecture differences between `Fabric Classic` and `Chaguar`.
 
-![Fabric Classic vs Fabric-X](./diagrams/Fabric_vs_Fabric-X.png)
+![Fabric Classic vs Chaguar](./diagrams/Fabric_vs_Fabric-X.png)
 
 Before we dive deep into the **differences**, we we would like to emphasize **similarities**:
 
@@ -41,14 +41,14 @@ Before we dive deep into the **differences**, we we would like to emphasize **si
 
 ### Differences
 
-1. **Programming model** - classical Fabric primarily uses chaincodes to simulate transaction execution. In Fabric-X, we replace chaincodes with peer-to-peer transaction negotiation protocols built on [Fabric-Smart-Client](https://github.com/hyperledger-labs/fabric-smart-client) and [Fabric-Token-SDK](https://github.com/hyperledger-labs/fabric-token-sdk). This shift enables interactive protocols between participants, aligning with patterns already present in legacy systems.
-2. **Peer decomposition** - in classical Fabric, peers handle transaction validation, commitment, and notification, among other responsibilities. This monolithic architecture limits scalability, especially when certain components become bottlenecks. In Fabric-X, we decompose the peer by offloading validation, commitment, and notification into independent, scalable microservices.
+1. **Programming model** - classical Fabric primarily uses chaincodes to simulate transaction execution. In Chaguar, we replace chaincodes with peer-to-peer transaction negotiation protocols built on [Fabric-Smart-Client](https://github.com/hyperledger-labs/fabric-smart-client) and [Fabric-Token-SDK](https://github.com/hyperledger-labs/fabric-token-sdk). This shift enables interactive protocols between participants, aligning with patterns already present in legacy systems.
+2. **Peer decomposition** - in classical Fabric, peers handle transaction validation, commitment, and notification, among other responsibilities. This monolithic architecture limits scalability, especially when certain components become bottlenecks. In Chaguar, we decompose the peer by offloading validation, commitment, and notification into independent, scalable microservices.
 3. **Ordering service** - classical Fabric offers the following ordering service implementations: SmartBFT and RAFT. We propose an implementation based on [Arma protocol](https://arxiv.org/abs/2405.16575) a high performance distributed BFT consensus.
-4. **Single channel** - classical Fabric supports partitioning the blockchain into multiple channels, each with optional private data collections for participant-specific data. In contrast, Fabric-X currently supports only a single channel, which can be partitioned into namespaces, each governed by distinct endorsement policies.
+4. **Single channel** - classical Fabric supports partitioning the blockchain into multiple channels, each with optional private data collections for participant-specific data. In contrast, Chaguar currently supports only a single channel, which can be partitioned into namespaces, each governed by distinct endorsement policies.
 
-### Fabric-X-Orderer
+### Chaguar Orderer
 
-Fabric-X-Orderer
+Chaguar Orderer
 
 Arma is a Byzantine Fault Tolerant (BFT) consensus system designed to achieve horizontal scalability across all hardware resources: network bandwidth, CPU, and disk I/O. As opposed to preceding BFT protocols, Arma separates the dissemination and validation of client transactions from the consensus process, restricting the latter to totally ordering only metadata of batches of transactions. This separation enables each party to distribute compute and storage resources for transaction validation, dissemination and disk I/O among multiple machines, resulting in horizontal scalability. Additionally, Arma ensures censorship resistance by imposing a maximum time limit on the inclusion of client transactions.
 
@@ -61,15 +61,15 @@ Arma is composed of 4 subcomponents: routers, batchers, consenters and assembler
 
 Clients submit transactions to the routers, whereas blocks are consumed from the assemblers.
 
-Figure below demonstrates Fabric-X-Orderer architecture.
+Figure below demonstrates Chaguar Orderer architecture.
 
-![Fabric-X-Orderer architecture](./diagrams/Fabric-X-Orderer.png)
+![Chaguar Orderer architecture](./diagrams/Fabric-X-Orderer.png)
 
-Code and more details can be found under [Fabric-X-Orderer Github repository](https://github.com/hyperledger/fabric-x-orderer).
+Code and more details can be found under [Chaguar Orderer Github repository](https://github.com/Chaguar/orderer).
 
-### Fabric-X-Committer
+### Chaguar Committer
 
-Fabric-X-Committer is responsible for post-ordering transaction processing. It has a microservice architecture comprised of the following subcomponents: sidecar, coordinator, validator-committer, verification service, query service.
+Chaguar Committer is responsible for post-ordering transaction processing. It has a microservice architecture comprised of the following subcomponents: sidecar, coordinator, validator-committer, verification service, query service.
 
 - **Sidecar** is a middleware component designed to operate between an Ordering Service and the Coordinator component. Its primary function is to reliably manage the flow of blocks, ensuring they are fetched, validated, persisted, and delivered to downstream clients.
 - **Coordinator** service acts as the central orchestrator of the transaction validation and commit pipeline. It sits between the Sidecar and a collection of specialized verification, validation and commit services. Its primary role is to manage the complex flow of transactions, from initial receipt to final status reporting, by leveraging a transaction dependency graph to maximize parallel processing while ensuring deterministic outcomes.
@@ -77,11 +77,11 @@ Fabric-X-Committer is responsible for post-ordering transaction processing. It h
 - **Validator-Committer Service** is a component responsible for the final stages of transaction processing. Its primary function is to perform optimistic concurrency control by validating each transaction's read-set against the current state in the database. Transactions that pass this validation are then committed, and their write-sets are applied to the database.
 - **Query Service** provides efficient, consistent read-only access to the state database. It implements a view-based query mechanism that allows clients to retrieve data with specific isolation guarantees while optimizing database access through sophisticated batching techniques
 
-Figure below demonstrates the Fabric-X-Committer architecture.
+Figure below demonstrates the Chaguar Committer architecture.
 
-![Fabric-X-Committer architecture](./diagrams/Fabric-X-Committer.png)
+![Chaguar Committer architecture](./diagrams/Fabric-X-Committer.png)
 
-Code and more details can be found under [Fabric-X-Committer Github repository](https://github.com/hyperledger/fabric-x-committer).
+Code and more details can be found under [Chaguar Committer Github repository](https://github.com/Chaguar/committer).
 
 ## Prerequisites
 
@@ -108,9 +108,9 @@ To set up the network yourself, follow the tutorial in the [Fabric-X Ansible Col
 The current `fxconfig` needs committer v1.0.6 or later for `--wait` and other sidecar calls.
 Older committers reject them with `Unimplemented: unknown service committerpb.SidecarService`.
 
-## Fabric-X workshop series
+## Chaguar workshop series
 
-- [Introduction into Fabric-X](https://www.youtube.com/live/gdQh-mNKSKA)
+- [Introduction into Chaguar (recorded as Fabric-X)](https://www.youtube.com/live/gdQh-mNKSKA)
 - [Programming model and app deployment](https://www.youtube.com/live/D086vrb9GeU)
 - [Fabric-Token-SDK](https://www.youtube.com/watch?v=PX9SDva97vQ)
 - [Orderer overview](https://www.youtube.com/live/1ikYNjDnqXw)
@@ -118,24 +118,24 @@ Older committers reject them with `Unimplemented: unknown service committerpb.Si
 
 ## Useful links
 
-- [Sample applications](https://github.com/hyperledger/fabric-x-samples)
-- [Fabric/Fabric-X monthly calls on the 3rd Wed of the month](https://zoom-lfx.platform.linuxfoundation.org/meetings/fabric?view=month)
-- [Fabric-X Blog](https://www.lfdecentralizedtrust.org/blog/new-major-contribution-to-hyperledger-fabric-purpose-built-implementation-for-next-gen-digital-assets)
-- [Fabric-X whitepaper](https://eprint.iacr.org/2023/1717.pdf) - detailed description of the Fabric-X. Explains motivation,implementation details and presents performance benchmarks
-- [Fabric-X Committer](https://github.com/hyperledger/fabric-x-committer) Github repository
-- [Fabric-X Orderer](https://github.com/hyperledger/fabric-x-orderer) Github repository
+- [Sample applications](https://github.com/Chaguar/samples)
+- [Fabric/Chaguar monthly calls on the 3rd Wed of the month](https://zoom-lfx.platform.linuxfoundation.org/meetings/fabric?view=month)
+- [Announcement blog post (as Fabric-X)](https://www.lfdecentralizedtrust.org/blog/new-major-contribution-to-hyperledger-fabric-purpose-built-implementation-for-next-gen-digital-assets)
+- [Whitepaper](https://eprint.iacr.org/2023/1717.pdf) - detailed description of Chaguar (published as Fabric-X). Explains motivation, implementation details and presents performance benchmarks
+- [Chaguar Committer](https://github.com/Chaguar/committer) Github repository
+- [Chaguar Orderer](https://github.com/Chaguar/orderer) Github repository
 - [Fabric-Token-SDK](https://github.com/hyperledger-labs/fabric-token-sdk) and [Fabric-Smart-Client](https://github.com/hyperledger-labs/fabric-smart-client) Github repositories
-- [Fabrix-X Common](https://github.com/hyperledger/fabric-x-common) Github repository - contains new CLIs and protobuf, and code shared between the orderer and committer
+- [Chaguar Common](https://github.com/Chaguar/common) Github repository - contains new CLIs and protobuf, and code shared between the orderer and committer
 - [Fabric-X Ansible Collection](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection)
-- [Fabric-X Client SDK](https://github.com/hyperledger/fabric-x-sdk/)
-- [Fabric-X EVM](https://github.com/hyperledger/fabric-x-evm)
-- [Fabric-X RFCs](https://github.com/hyperledger/fabric-x-rfcs) Github repository - contains request for comments (RFCs) in the Fabric-X project
+- [Chaguar Client SDK](https://github.com/Chaguar/sdk/)
+- [Chaguar EVM](https://github.com/Chaguar/evm)
+- [Chaguar RFCs](https://github.com/Chaguar/rfcs) Github repository - contains request for comments (RFCs) in the Chaguar project
 
 ## Coming soon
 
-- [x] [Sample token application on top of Fabric-X](https://github.com/hyperledger/fabric-x-samples)
-- [x] [Fabric-X on Kubernetes](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection/blob/main/examples/README.md#kubernetes-inventories)
-- [x] Fabric-X on OpenShift
-- [ ] Fabric-X Kubernetes operator
-- [x] [Fabric-x blockchain explorer](https://github.com/LF-Decentralized-Trust-labs/fabric-x-block-explorer)
-- [x] [Fabric meets EVM](https://github.com/hyperledger/fabric-x-evm)
+- [x] [Sample token application on top of Chaguar](https://github.com/Chaguar/samples)
+- [x] [Chaguar on Kubernetes](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection/blob/main/examples/README.md#kubernetes-inventories)
+- [x] Chaguar on OpenShift
+- [ ] Chaguar Kubernetes operator
+- [x] [Chaguar blockchain explorer](https://github.com/LF-Decentralized-Trust-labs/fabric-x-block-explorer)
+- [x] [Fabric meets EVM](https://github.com/Chaguar/evm)

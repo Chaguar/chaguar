@@ -27,7 +27,7 @@ Chaguar proves that permissioned DLTs can be engineered for national-scale payme
 
 Figure below shows the high-level architecture differences between `Fabric Classic` and `Chaguar`.
 
-![Fabric Classic vs Chaguar](./diagrams/Fabric_vs_Fabric-X.png)
+![Fabric Classic vs Chaguar](./diagrams/Fabric_vs_Chaguar.png)
 
 Before we dive deep into the **differences**, we we would like to emphasize **similarities**:
 
@@ -63,7 +63,7 @@ Clients submit transactions to the routers, whereas blocks are consumed from the
 
 Figure below demonstrates Chaguar Orderer architecture.
 
-![Chaguar Orderer architecture](./diagrams/Fabric-X-Orderer.png)
+![Chaguar Orderer architecture](./diagrams/Chaguar-Orderer.png)
 
 Code and more details can be found under [Chaguar Orderer Github repository](https://github.com/Chaguar/orderer).
 
@@ -79,7 +79,7 @@ Chaguar Committer is responsible for post-ordering transaction processing. It ha
 
 Figure below demonstrates the Chaguar Committer architecture.
 
-![Chaguar Committer architecture](./diagrams/Fabric-X-Committer.png)
+![Chaguar Committer architecture](./diagrams/Chaguar-Committer.png)
 
 Code and more details can be found under [Chaguar Committer Github repository](https://github.com/Chaguar/committer).
 

@@ -554,6 +554,10 @@ The command leaves the block unchanged if:
 - The edited config is not a valid channel config. This also catches an org certificate or CRL
   that cannot be parsed.
 
+fxadmin checks the hosts only because the orderer doesn't check them yet. These checks will be
+removed from `modify party add` once the orderer checks hosts and fxadmin runs the orderer's checks
+before it writes the block ([Chaguar/common#233](https://github.com/Chaguar/common/issues/233)).
+
 **Checked by the orderer on submission**
 
 fxadmin does not check these rules before it writes the block, so a mistake is reported only when
@@ -574,11 +578,12 @@ the transaction is submitted. Checking them earlier is tracked in
 
 Neither fxadmin nor the orderer checks these rules yet, so check them yourself:
 
-- Every node has a non-empty host and a port between 1 and 65535, and the party has at least one
-  batcher ([Chaguar/orderer#1449](https://github.com/Chaguar/orderer/issues/1449)).
+- Every node has a port between 1 and 65535, and the party has at least one batcher
+  ([Chaguar/orderer#1449](https://github.com/Chaguar/orderer/issues/1449)).
 - Every address in the org's `Endpoints` has the party's `id=` and exactly one API, `broadcast` or
   `deliver` ([Chaguar/orderer#1477](https://github.com/Chaguar/orderer/issues/1477)).
-- Every node's `client_tls_cert` is a valid certificate issued by `TLSCACerts`.
+- Every node's `client_tls_cert` is a valid certificate issued by `TLSCACerts`. will be added
+as part of [Chaguar/orderer#1451](https://github.com/Chaguar/orderer/issues/1451)
 
 ---
 

@@ -383,8 +383,8 @@ Add a new ARMA party together with its new orderer organization.
 fxadmin modify party add --party=party5.yaml --block next.pb
 ```
 
-`party5.yaml` is the party definition. It has two sections, each written in the structure
-`fxadmin decode` shows:
+`party5.yaml` is the party definition. It has two sections, each mirroring its form in the
+config block:
 
 - `Party`: the party's entry in the ARMA shared config
   (`channel_group.groups.Orderer.values.ConsensusType.value.metadata.PartiesConfig`).
@@ -395,8 +395,9 @@ fxadmin modify party add --party=party5.yaml --block next.pb
 The command copies both sections into the block as they are, and fills in nothing.
 
 **Certificates.** Give every certificate and CRL as the path of its PEM file. A relative path is
-relative to the directory of `party5.yaml`. Only the first PEM block of each file is stored, so a
-file that also holds a private key is safe to use.
+relative to the directory of `party5.yaml`. Only the first PEM block of each file is stored, and
+its type isn't checked, so a file must start with its certificate or CRL. A private key after it
+is not stored.
 
 ```yaml
 # party5.yaml
@@ -407,26 +408,34 @@ Party:                               # → Orderer ConsensusType metadata: Parti
   TLSCACerts:                        # the org's TLS CA certificates
     - crypto/org5/tlsca/tlsca-cert.pem
   RouterConfig:
-    host: router.org5.com
-    port: 7050
-    tls_cert: crypto/org5/router/tls/server.crt
-    sign_cert: crypto/org5/router/msp/signcerts/cert.pem
+    node_config:
+      host: router.org5.com
+      port: 7050
+      client_tls_cert: crypto/org5/router/tls/server.crt   # may be the same file as server_tls_cert
+      server_tls_cert: crypto/org5/router/tls/server.crt
+      sign_cert: crypto/org5/router/msp/signcerts/cert.pem
   BatchersConfig:                    # one per shard; shard IDs start at 1
-    - shardID: 1
-      host: batcher1.org5.com
-      port: 7070
-      sign_cert: crypto/org5/batcher1/msp/signcerts/cert.pem
-      tls_cert: crypto/org5/batcher1/tls/server.crt
+    - shard_id: 1
+      node_config:
+        host: batcher1.org5.com
+        port: 7070
+        client_tls_cert: crypto/org5/batcher1/tls/server.crt
+        server_tls_cert: crypto/org5/batcher1/tls/server.crt
+        sign_cert: crypto/org5/batcher1/msp/signcerts/cert.pem
   ConsenterConfig:
-    host: consenter.org5.com
-    port: 7052
-    sign_cert: crypto/org5/consenter/msp/signcerts/cert.pem
-    tls_cert: crypto/org5/consenter/tls/server.crt
+    node_config:
+      host: consenter.org5.com
+      port: 7052
+      client_tls_cert: crypto/org5/consenter/tls/server.crt
+      server_tls_cert: crypto/org5/consenter/tls/server.crt
+      sign_cert: crypto/org5/consenter/msp/signcerts/cert.pem
   AssemblerConfig:
-    host: assembler.org5.com
-    port: 7060
-    tls_cert: crypto/org5/assembler/tls/server.crt
-    sign_cert: crypto/org5/assembler/msp/signcerts/cert.pem
+    node_config:
+      host: assembler.org5.com
+      port: 7060
+      client_tls_cert: crypto/org5/assembler/tls/server.crt
+      server_tls_cert: crypto/org5/assembler/tls/server.crt
+      sign_cert: crypto/org5/assembler/msp/signcerts/cert.pem
 Org:                                 # → Orderer/groups/<Name>
   Name: org5                         # the org's key under Orderer
   version: "0"
@@ -533,8 +542,7 @@ The command leaves the block unchanged if:
 
 - `party5.yaml` cannot be parsed, has no `Party` or `Org` section, or `Org` has no `Name`.
 - A key of `Party` or `Org` is not a field of the block structure.
-- A certificate or CRL path does not exist, or the first PEM block of the file is not a
-  `CERTIFICATE` (or an `X509 CRL`, for `revocation_list`).
+- A certificate or CRL path does not exist, or the file holds no PEM block.
 - An orderer org with the same `Name` is already in the block. Adding a party to an existing org is
   not supported.
 - `Party` has no `ConsenterConfig`, or `Org` has no Fabric MSP with a `name`.
@@ -550,16 +558,27 @@ The command leaves the block unchanged if:
 
 fxadmin does not check these rules before it writes the block, so a mistake is reported only when
 the transaction is submitted. Checking them earlier is tracked in
-[fabric-x-common#233](https://github.com/hyperledger/fabric-x-common/issues/233).
+[Chaguar/common#233](https://github.com/Chaguar/common/issues/233).
 
 - `PartyID` must be the block's `MaxPartyID + 1`.
-- The party's node certificates must be valid certificates, issued by its `CACerts` and
-  `TLSCACerts`, and none may be expired.
+- The party's `CACerts` and `TLSCACerts` must be valid CA certificates. Every node's
+  `server_tls_cert` must be issued by `TLSCACerts` and its `sign_cert` by `CACerts`, and none may
+  be expired.
 - The org's MSP `tls_root_certs` must be the party's `TLSCACerts`.
 - No two nodes, of this party or another, may have signing certificates with the same public key.
 - The org's `Endpoints` must include both a `broadcast` and a `deliver` address.
 - A config update can change only one party. Don't add a party and change another one in the same
   `next.pb`.
+
+**Not checked yet**
+
+Neither fxadmin nor the orderer checks these rules yet, so check them yourself:
+
+- Every node has a non-empty host and a port between 1 and 65535, and the party has at least one
+  batcher ([Chaguar/orderer#1449](https://github.com/Chaguar/orderer/issues/1449)).
+- Every address in the org's `Endpoints` has the party's `id=` and exactly one API, `broadcast` or
+  `deliver` ([Chaguar/orderer#1477](https://github.com/Chaguar/orderer/issues/1477)).
+- Every node's `client_tls_cert` is a valid certificate issued by `TLSCACerts`.
 
 ---
 
@@ -606,7 +625,7 @@ fxadmin modify party node --party 1 --role consenter \
 | `--shard` | if batcher | Batcher shard ID. Required with `--role batcher`; an error with any other role |
 | `--host` | no | New host: a host name or an IP address, without a port; IPv6 without brackets (unchanged if omitted) |
 | `--port` | no | New port, 1–65535 (unchanged if omitted) |
-| `--tls-cert` | no | Path to new TLS certificate (unchanged if omitted) |
+| `--tls-cert` | no | Path to new TLS certificate, set as both the node's client and server TLS certificate (unchanged if omitted) |
 | `--sign-cert` | no | Path to new signing certificate (unchanged if omitted) |
 | `--block` | yes | Config block to edit in place |
 

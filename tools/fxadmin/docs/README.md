@@ -790,6 +790,18 @@ the list, with `fxadmin modify party ca node-ous`
 Replacing a party's CAs takes **three config updates**, as in the orderer's
 `TestChangePartyCACertificates` scenario and its
 [CA rotation guide](https://github.com/Chaguar/orderer/blob/main/docs/reconfig/reconfig.md#55-rotate-a-partys-ca-certificates).
+
+**The rotation assumes an org MSP with node OUs.** Then the admin role comes from the admin node OU,
+and the MSP's `admins` list is empty. This is the default for orgs generated with node OUs.
+
+**MSPs without node OUs are not supported.** An MSP without node OUs (admincerts mode) lists its
+admin certificates in `admins` instead, and has no node OU pins to move. To rotate the CAs of such
+an org, update 2 should replace the `admins` certificates with those of the new admin identities,
+instead of running `node-ous`. The `modify` commands don't change `admins`, and won't: CA rotation
+with the `modify` commands is supported only for MSPs with node OUs. The same holds for an MSP with
+node OUs that also lists admin certificates in `admins`: `ca set` in update 3 fails while they are
+issued by the old CA.
+
 Each update removes trust in the old CA only once nothing in the block depends on it:
 
 | Update | `root_certs` / `tls_root_certs` | Party's node certificates | Node OUs pin | Party's admin endorses with |
@@ -802,8 +814,8 @@ The node certificates and the node OUs must move **in the same update**, update 
 certificate that isn't issued by the CA its node OU pins is invalid in the org's MSP, so moving
 only one of them is rejected on submission.
 
-It is the admin's responsibility to follow this order: before `set` removes a CA, no certificate of
-the party may still be issued by it.
+**It is the admin's responsibility to follow this order:** before `set` removes a CA, no certificate
+of the party may still be issued by it.
 
 **Before update 1**, issue from the new CAs a TLS and a signing certificate for every node of the
 party (the router, the consenter, the assembler, and the batcher of every shard), and new admin
@@ -849,6 +861,9 @@ fxadmin follow --config admin_org2.yaml --current-block config1.pb --timeout 60s
 # ---- Update 3: remove the old CAs.
 cp config2.pb next.pb
 #   First, replace org1's MSP known_certs: the certificates of the old CA by those of the new CA.
+#   List the batcher of every shard of party 1 in both commands, not only batcher1
+#   (old-batcher2-sign.crt and batcher2-sign.crt, …): an old-CA certificate left in known_certs
+#   makes the `ca set` below fail.
 fxadmin modify party known-certs remove --party 1 \
   --cert old-admin-sign.crt --cert old-client-sign.crt --cert old-router-sign.crt \
   --cert old-consenter-sign.crt --cert old-assembler-sign.crt --cert old-batcher1-sign.crt --block next.pb
@@ -864,7 +879,6 @@ fxadmin tx merge update3_org1.pb update3_org2.pb update3_org3.pb --output update
 fxadmin tx send update3_endorsed.pb --config admin_org2.yaml --current-block config2.pb --output update3_tx.pb
 fxadmin follow --config admin_org2.yaml --current-block config2.pb --timeout 60s --output config3.pb
 ```
-**It is the admin’s responsibility to follow this order.**
 
 **When the command fails**
 

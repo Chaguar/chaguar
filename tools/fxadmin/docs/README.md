@@ -325,19 +325,122 @@ Add an application organization to the `Application` group.
 fxadmin modify app add --org=peer2.yaml --block next.pb
 ```
 
-`peer2.yaml` is the organization definition:
+`peer2.yaml` is the organization definition. It has two keys:
+
+- `name`: the org's key under `Application`.
+- `config_group`: the config group of the organization
+  (`channel_group.groups.Application.groups.<name>`), in the form it has in the config block.
+
+The command copies the config group into the block as it is, and fills in nothing.
 
 ```yaml
-Name:   peer2                                # group name under Application
-ID:     peer2                                # MSP ID
-MSPDir: crypto/peerOrganizations/peer2/msp   # CA / TLS-CA / admin certs, node OUs
-Policies:                                    # optional; default = standard org policies
-  Readers:     { Type: Signature, Rule: "OR('peer2.member')" }
-  Writers:     { Type: Signature, Rule: "OR('peer2.member')" }
-  Admins:      { Type: Signature, Rule: "OR('peer2.admin')" }
-  Endorsement: { Type: Signature, Rule: "OR('peer2.member')" }
-AnchorPeers:                                 # optional
-  - { Host: peer0.peer2.example.com, Port: 7051 }
+# peer2.yaml
+name: peer2                          # the org's key under Application
+
+config_group:                        # → Application/groups/<name>
+  version: "0"
+  mod_policy: Admins
+  groups: {}
+
+  policies:                          # Readers, Writers, Admins, Endorsement
+    Readers:
+      version: "0"
+      mod_policy: Admins
+      policy:
+        type: 1                      # 1 = SIGNATURE
+        value:                       # OR('peer2.member')
+          version: 0
+          identities:
+            - principal_classification: ROLE
+              principal:
+                msp_identifier: peer2
+                role: MEMBER
+          rule:
+            n_out_of:
+              n: 1
+              rules:
+                - signed_by: 0
+
+    Writers:
+      version: "0"
+      mod_policy: Admins
+      policy:
+        type: 1
+        value:                       # OR('peer2.member')
+          version: 0
+          identities:
+            - principal_classification: ROLE
+              principal:
+                msp_identifier: peer2
+                role: MEMBER
+          rule:
+            n_out_of:
+              n: 1
+              rules:
+                - signed_by: 0
+
+    Admins:
+      version: "0"
+      mod_policy: Admins
+      policy:
+        type: 1
+        value:                       # OR('peer2.admin')
+          version: 0
+          identities:
+            - principal_classification: ROLE
+              principal:
+                msp_identifier: peer2
+                role: ADMIN
+          rule:
+            n_out_of:
+              n: 1
+              rules:
+                - signed_by: 0
+
+    Endorsement:
+      version: "0"
+      mod_policy: Admins
+      policy:
+        type: 1
+        value:                       # OR('peer2.member')
+          version: 0
+          identities:
+            - principal_classification: ROLE
+              principal:
+                msp_identifier: peer2
+                role: MEMBER
+          rule:
+            n_out_of:
+              n: 1
+              rules:
+                - signed_by: 0
+
+  values:
+    MSP:
+      version: "0"
+      mod_policy: Admins
+      value:
+        type: 0                      # 0 = FABRIC
+        config:                      # FabricMSPConfig
+          name: peer2                # MSP ID; the msp_identifier of the policies
+          root_certs:
+            - <base64 PEM>
+          intermediate_certs: []
+          admins:
+            - <base64 PEM>
+          revocation_list: []
+          signing_identity: null
+          organizational_unit_identifiers: []
+          crypto_config:
+            signature_hash_family: SHA2
+            identity_identifier_hash_function: SHA256
+          tls_root_certs:
+            - <base64 PEM>
+          tls_intermediate_certs: []
+          fabric_node_ous: null
+          known_certs:
+            - <base64 PEM>
+            - <base64 PEM>
 ```
 
 **Flags**

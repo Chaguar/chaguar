@@ -742,8 +742,9 @@ fxadmin modify party ca node-ous --party 1 --sign-cert new-ca.crt --block next.p
 | `--block` | yes | Config block to edit in place |
 
 Pass only `--sign-cert` to change the CA list, only `--tls-cert` for the TLS-CA
-list, or both to change both. Each file must hold a PEM-encoded X.509 **CA** certificate, and the
-same certificate can't be given twice.
+list, or both to change both. Each file must hold exactly one PEM-encoded X.509 **CA** certificate,
+and the same certificate can't be given twice. A file of several certificates, such as a CA chain
+or bundle, is rejected: give each CA in a file of its own.
 
 **What changes in the block**
 
@@ -763,8 +764,16 @@ An org can run several parties, which all trust the org's MSP, so the change is 
 party of the org**, whichever of them `--party` names.
 
 **Node OUs.** Each node OU of the org MSP (`fabric_node_ous`: client, peer, admin and orderer)
-pins one CA, which must be one of the MSP's `root_certs`. Every identity of the org, including the
-party's nodes, must be issued by the CA its node OU pins.
+pins one CA, which must be one of the MSP's `root_certs` or `intermediate_certs`. Every identity of
+the org, including the party's nodes, must be issued by the CA its node OU pins. So run `node-ous`
+in the same config update as `modify party node --sign-cert` for every node of the org's parties
+(see the rotation below).
+
+**Node OUs that are not enabled.** An MSP can define node OUs with `enable: false`. Then they don't
+decide the roles of identities, but the MSP still requires the CA each node OU pins to be one of its
+`root_certs` or `intermediate_certs`. So before you remove the CA they pin (with `ca remove` or
+`ca set`), you still move the pins with `fxadmin modify party ca node-ous`. It moves them as usual,
+and warns that the node OUs are not enabled. `ca add`, `ca remove` and `ca set` never move the pins.
 
 Each command changes one thing. `add`, `remove` and `set` change only the CA lists, and
 `node-ous` changes only the node OUs: it points every node OU that pins a CA at the given CA. So
@@ -862,7 +871,8 @@ fxadmin follow --config admin_org2.yaml --current-block config2.pb --timeout 60s
 The command leaves the block unchanged if:
 
 - **Every subcommand:**
-  - a certificate file can't be read, isn't a PEM-encoded X.509 CA certificate, or is given twice;
+  - a certificate file can't be read, isn't a PEM-encoded X.509 CA certificate, holds more than
+    one PEM block, or is given twice;
   - the shared config has no party with that `PartyID`, or the consenter mapping has no consenter
     for it;
   - no orderer org, or more than one, has the MSP `name` of the party's consenter;
@@ -879,7 +889,8 @@ The command leaves the block unchanged if:
     issued by a CA it removes.
 - **`node-ous`:**
   - not exactly one `--sign-cert` is given, or a `--tls-cert` is given;
-  - the CA is not in the CA list of every party of the org;
+  - the CA is not in the CA list of every party of the org, or not in the org MSP's `root_certs`
+    or `intermediate_certs`;
   - the org MSP has no node OUs that pin a CA.
 
 `add` fails only in the cases of every subcommand.

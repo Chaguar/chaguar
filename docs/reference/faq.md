@@ -3,10 +3,10 @@
 
 ## General
 
-### What is Fabric-X?
-Fabric-X is the next-generation Hyperledger Fabric with horizontally scalable ordering and parallel validation.
+### What is Chaguar?
+Chaguar is the next-generation Hyperledger Fabric with horizontally scalable ordering and parallel validation.
 
-### How does Fabric-X differ from Fabric v2?
+### How does Chaguar differ from Fabric v2?
 - **Ordering:** Arma BFT (200,000+ TPS) vs Raft/Kafka
 - **Validation:** Parallel wave-based vs sequential
 - **Endorsement:** FSC Views vs Chaincodes
@@ -14,7 +14,7 @@ Fabric-X is the next-generation Hyperledger Fabric with horizontally scalable or
 
 ## Architecture
 
-### How many channels does Fabric-X support?
+### How many channels does Chaguar support?
 Single channel only. Use namespaces for isolation.
 
 ### Are private data collections supported?
@@ -64,7 +64,7 @@ Yes. See deployment guides.
 ## Troubleshooting
 
 ### Where do I find logs?
-Check `/var/log/fabric-x/` or container logs.
+Check `/var/log/chaguar/` or container logs.
 
 ### How do I monitor the network?
 See [Monitoring](../operations/monitoring.md).

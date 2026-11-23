@@ -1,11 +1,11 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# How Fabric-X Networks Are Structured
+# How Chaguar Networks Are Structured
 
 ## Overview
 
-A Fabric-X network is a permissioned technical and governance domain where known organizations share identity rules, ordering, validation, and ledger state. Organizations agree on who participates, which certificate authorities and MSPs are trusted, which policies control administration, and which services maintain the network.
+A Chaguar network is a permissioned technical and governance domain where known organizations share identity rules, ordering, validation, and ledger state. Organizations agree on who participates, which certificate authorities and MSPs are trusted, which policies control administration, and which services maintain the network.
 
-Fabric-X mirrors many Fabric concepts: organizations, CAs, MSPs, ordering, validation, policies, and ledgers. The major structural difference is channel topology. Fabric-X does not support channels as separate network partitions. It uses one channel for the network and namespaces for application-level state and policy boundaries.
+Chaguar mirrors many Fabric concepts: organizations, CAs, MSPs, ordering, validation, policies, and ledgers. The major structural difference is channel topology. Chaguar does not support channels as separate network partitions. It uses one channel for the network and namespaces for application-level state and policy boundaries.
 
 This topic describes those components at conceptual level. It avoids deployment details and internal service mechanics.
 
@@ -27,15 +27,15 @@ Keeping CA operations and MSP configuration correct is central to network trust.
 
 ## Applications and Endorsement
 
-Applications submit work to Fabric-X using FSC views or custom endorsers instead of Fabric contracts or chaincode as primary application model. Application logic prepares transaction intent, obtains required endorsements, and submits endorsed transactions for ordering.
+Applications submit work to Chaguar using FSC views or custom endorsers instead of Fabric contracts or chaincode as primary application model. Application logic prepares transaction intent, obtains required endorsements, and submits endorsed transactions for ordering.
 
 Endorsement policies define which organizations or identities must sign transaction results before those transactions can be accepted. Different namespaces can use different endorsement policies, letting one network host multiple applications or business domains while keeping validation rules explicit.
 
-Fabric-X applications should be designed around identities, signatures, policies, namespaces, and state updates. They do not rely on Fabric chaincode lifecycle or per-channel contract deployment as main structure.
+Chaguar applications should be designed around identities, signatures, policies, namespaces, and state updates. They do not rely on Fabric chaincode lifecycle or per-channel contract deployment as main structure.
 
 ## Ordering Service
 
-Arma is the ordering service for Fabric-X. It receives endorsed transactions, establishes total order, and emits ordered blocks for validation and commit.
+Arma is the ordering service for Chaguar. It receives endorsed transactions, establishes total order, and emits ordered blocks for validation and commit.
 
 Ordering does not decide whether application updates are valid. It provides shared sequence. Committer services later evaluate signatures, policies, and read versions before applying valid updates to world state.
 
@@ -47,15 +47,15 @@ Committer services receive ordered blocks and validate transactions. They valida
 
 Query services provide read access to committed state. They allow applications and operators to inspect current world state without submitting transactions. Deployments may separate commit and query responsibilities so read traffic and validation work can be operated independently.
 
-Together, committers and query services provide ledger maintenance and state access for applications that use Fabric-X.
+Together, committers and query services provide ledger maintenance and state access for applications that use Chaguar.
 
 ## Single Channel and Namespaces
 
-Fabric-X uses a single channel for network-wide ordering, validation context, configuration, and ledger history. All organizations participating in one Fabric-X network share that channel.
+Chaguar uses a single channel for network-wide ordering, validation context, configuration, and ledger history. All organizations participating in one Chaguar network share that channel.
 
-Unlike Hyperledger Fabric, Fabric-X does not support channels as separate network partitions. Instead, Fabric-X uses namespaces to organize application state and attach policies to logical domains. A namespace can represent an asset class, business process, payment rail, or application. Namespaces share ordered history but can have distinct endorsement and validation policy boundaries.
+Unlike Hyperledger Fabric, Chaguar does not support channels as separate network partitions. Instead, Chaguar uses namespaces to organize application state and attach policies to logical domains. A namespace can represent an asset class, business process, payment rail, or application. Namespaces share ordered history but can have distinct endorsement and validation policy boundaries.
 
-This model avoids channel sprawl while keeping application boundaries visible. When complete isolation is required, use separate Fabric-X networks rather than attempting to create multiple channels in one network.
+This model avoids channel sprawl while keeping application boundaries visible. When complete isolation is required, use separate Chaguar networks rather than attempting to create multiple channels in one network.
 
 ## Ledger
 
@@ -75,7 +75,7 @@ Clear policy design is critical. Before launching a network, organizations shoul
 
 ## When to Use Separate Networks
 
-Use separate Fabric-X networks when participants require separate ledgers, separate ordering histories, separate governance, or strong administrative isolation. Separate networks replace multi-channel isolation when separate ledgers or governance domains are required.
+Use separate Chaguar networks when participants require separate ledgers, separate ordering histories, separate governance, or strong administrative isolation. Separate networks replace multi-channel isolation when separate ledgers or governance domains are required.
 
 Namespaces are appropriate when applications can share network governance and ledger history while keeping state domains and endorsement policies distinct. Separate networks are appropriate when sharing those foundations would violate legal, regulatory, operational, or confidentiality requirements.
 

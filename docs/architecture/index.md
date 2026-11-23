@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# Fabric-X Architecture Reference
+# Chaguar Architecture Reference
 
 ## Overview
 
-Fabric-X represents a fundamental re-architecture of Hyperledger Fabric, designed from the ground up for **mission-critical enterprise workloads** requiring Byzantine Fault Tolerance, horizontal scalability, and high throughput. This document provides a comprehensive architectural reference covering system design, major components, interaction patterns, and guiding principles.
+Chaguar represents a fundamental re-architecture of Hyperledger Fabric, designed from the ground up for **mission-critical enterprise workloads** requiring Byzantine Fault Tolerance, horizontal scalability, and high throughput. This document provides a comprehensive architectural reference covering system design, major components, interaction patterns, and guiding principles.
 
 ## Architecture Topics
 
@@ -20,11 +20,11 @@ Fabric-X represents a fundamental re-architecture of Hyperledger Fabric, designe
 - [Validator-Committer](../committer/docs/validator-committer.md) — MVCC validation and database commit.
 
 !!! info "Performance Note"
-    Fabric-X is designed for high-throughput deployments. Actual throughput depends on workload, hardware, shard count, database, and network conditions. Run benchmarks for deployment-specific numbers.
+    Chaguar is designed for high-throughput deployments. Actual throughput depends on workload, hardware, shard count, database, and network conditions. Run benchmarks for deployment-specific numbers.
 
 ### Key Architectural Innovations
 
-| Innovation | Fabric Classic | Fabric-X | Improvement |
+| Innovation | Fabric Classic | Chaguar | Improvement |
 |------------|---------------|----------|-------------|
 | **Ordering Service** | Monolithic orderer | **Arma**: 4 microservices (Router, Batcher, Consenter, Assembler) | Horizontal scalability, BFT consensus |
 | **Commitment** | Monolithic peer | **Pipeline services**: Sidecar, Coordinator, Verifier, Validator-Committer | Parallel validation and independent scaling |
@@ -51,7 +51,7 @@ Fabric-X represents a fundamental re-architecture of Hyperledger Fabric, designe
 
 ```mermaid
 flowchart TB
-    subgraph network["FABRIC-X NETWORK (Single Channel + Namespaces)"]
+    subgraph network["CHAGUAR NETWORK (Single Channel + Namespaces)"]
         direction TB
         subgraph client["CLIENT LAYER"]
             FSC["FSC App<br/>(FSC View)"]

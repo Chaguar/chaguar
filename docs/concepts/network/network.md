@@ -1,14 +1,14 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# How Fabric-X networks are formed
+# How Chaguar networks are formed
 
-Fabric-X networks form through shared governance, trusted identities, and coordinated runtime components. This topic focuses on two kinds of member organizations:
+Chaguar networks form through shared governance, trusted identities, and coordinated runtime components. This topic focuses on two kinds of member organizations:
 
 - **Application organizations**, which own applications, users, endorsers, committers, and application data responsibilities.
 - **Orderer organizations**, which own ordering nodes that operate the ordering service.
 
 After reading this topic, you should understand how organizations prepare identities, agree on channel configuration, start nodes, transact, add a new member, and remove an existing member.
 
-The emphasis is on structure and intent rather than command syntax. Fabric-X networks are built from agreements between organizations, and those agreements are encoded as configuration. The physical nodes can start, stop, scale, or move, but their authority comes from the configuration and identity material that the member organizations approve.
+The emphasis is on structure and intent rather than command syntax. Chaguar networks are built from agreements between organizations, and those agreements are encoded as configuration. The physical nodes can start, stop, scale, or move, but their authority comes from the configuration and identity material that the member organizations approve.
 
 A useful way to read this topic is to separate three layers: the **governance layer** made of organizations and policies, the **identity layer** made of CAs and MSPs, and the **runtime layer** made of applications, endorsers, orderers, committers, and ledgers. Most network operations change one layer first and then cause controlled changes in the others.
 
@@ -77,9 +77,9 @@ flowchart LR
     class Ledger ledger
 ```
 
-## What is a Fabric-X network?
+## What is a Chaguar network?
 
-A Fabric-X network is a governed collaboration space where organizations share one ledger and one set of policies. Fabric-X has a single-channel model, so **network** and **channel** usually refer to the same administrative scope: one ledger, one channel configuration, one set of member organizations, and one transaction path.
+A Chaguar network is a governed collaboration space where organizations share one ledger and one set of policies. Chaguar has a single-channel model, so **network** and **channel** usually refer to the same administrative scope: one ledger, one channel configuration, one set of member organizations, and one transaction path.
 
 The network is not defined only by which machines are running. It is defined by the channel configuration that those machines trust. If a node has certificates but its organization is not listed in channel configuration, that node is not an authorized channel participant. If an organization is listed but has not started its nodes, it is a member by policy but not yet contributing runtime capacity.
 
@@ -115,7 +115,7 @@ This diagram separates the **data path** from the **governance path**. Solid arr
 
 ## Two kinds of organizations
 
-Fabric-X separates network responsibilities into application organizations and orderer organizations. One legal entity can operate both kinds of infrastructure, but conceptually the roles are distinct.
+Chaguar separates network responsibilities into application organizations and orderer organizations. One legal entity can operate both kinds of infrastructure, but conceptually the roles are distinct.
 
 This distinction helps administrators reason about authority. Application organizations are usually concerned with business participation: who can submit work, who can endorse outcomes, and who maintains application state. Orderer organizations are concerned with neutral ordering infrastructure: who participates in block production, how orderer nodes discover each other, and how ordering-service membership changes.
 
@@ -125,7 +125,7 @@ Application organizations contain application-side runtime components: client ap
 
 ```mermaid
 flowchart TB
-    subgraph Network[Fabric-X network / channel]
+    subgraph Network[Chaguar network / channel]
         Config{{Channel configuration}}
         Ledger[(Shared ledger)]
 
@@ -208,7 +208,7 @@ An application organization typically owns:
 - An organization MSP that defines which certificates belong to the organization.
 - Policies that describe what its admins, clients, and nodes may do.
 
-In crypto configuration terms, these organizations are commonly modeled with `PeerOrgs`. The name comes from Fabric MSP role naming: peer certificates identify application-side nodes. In Fabric-X docs, think of `PeerOrgs` as application organizations.
+In crypto configuration terms, these organizations are commonly modeled with `PeerOrgs`. The name comes from Fabric MSP role naming: peer certificates identify application-side nodes. In Chaguar docs, think of `PeerOrgs` as application organizations.
 
 ```mermaid
 flowchart TB
@@ -398,7 +398,7 @@ flowchart TB
 
 ## Trust and identity material
 
-Every member organization needs cryptographic identity material before it can join the network. Fabric-X uses X.509 certificates and MSPs to decide whether an identity belongs to an organization and what role it has.
+Every member organization needs cryptographic identity material before it can join the network. Chaguar uses X.509 certificates and MSPs to decide whether an identity belongs to an organization and what role it has.
 
 Identity material turns an administrative statement into something machines can verify. It is not enough for a node to claim that it belongs to `AppOrg1`; it must present a certificate that chains to the CA trusted by `AppOrg1`'s MSP. Other components use the MSP information in channel configuration to make that check consistently.
 
@@ -581,7 +581,7 @@ flowchart TB
 
     ConfigTx{{Channel config transaction}}
     Genesis{{Genesis config block}}
-    Network["Fabric-X network<br/>exists logically"]
+    Network["Chaguar network<br/>exists logically"]
 
     Inputs --> ConfigTx
     ConfigTx --> Genesis
@@ -1161,11 +1161,11 @@ flowchart TB
     class A2,A3,R1,R2,R3,Current,NewConfig config
 ```
 
-The most important rule is that **current policy controls the next configuration**. Existing members cannot bypass the policy already recorded on the channel. This is how Fabric-X keeps network evolution declarative and auditable.
+The most important rule is that **current policy controls the next configuration**. Existing members cannot bypass the policy already recorded on the channel. This is how Chaguar keeps network evolution declarative and auditable.
 
 ## Network recap
 
-A Fabric-X network forms when application organizations and orderer organizations agree on shared channel configuration. Application organizations bring business identities, applications, endorsers, and committers. Orderer organizations bring orderer nodes and ordering-service governance. MSPs connect certificates to organizations; policies connect organizations to rights.
+A Chaguar network forms when application organizations and orderer organizations agree on shared channel configuration. Application organizations bring business identities, applications, endorsers, and committers. Orderer organizations bring orderer nodes and ordering-service governance. MSPs connect certificates to organizations; policies connect organizations to rights.
 
 The practical result is a network that can be administered declaratively. Administrators do not rely on informal knowledge of which machines should be trusted. They rely on MSP definitions, roles, endpoints, and policies recorded in channel configuration. Components then use that shared configuration to make consistent authorization decisions.
 

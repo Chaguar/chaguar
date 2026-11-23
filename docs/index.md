@@ -41,22 +41,22 @@ the outset. To address enterprise requirements, we developed
 [Hyperledger Fabric](https://hyperledger-fabric.readthedocs.io/en/release-2.5).
 However, Fabric has performance limitations (~2,000 TPS) that make it unsuitable
 for tokenization use cases requiring higher throughput. Additionally, Fabric's
-rigid chaincode programming model lacks flexibility. Fabric-X addresses these
+rigid chaincode programming model lacks flexibility. Chaguar (formerly Fabric-X) addresses these
 limitations by removing chaincodes and introducing a flexible programming model
 using [Fabric Smart Client (FSC)](https://github.com/hyperledger-labs/fabric-smart-client)
-views. The following sections describe the differences between Fabric-X and
+views. The following sections describe the differences between Chaguar and
 Fabric.
 
 ---
 
-## Fabric vs Fabric-X
+## Fabric vs Chaguar
 
-Fabric-X is an evolution of Hyperledger Fabric, designed for high-performance
+Chaguar is an evolution of Hyperledger Fabric, designed for high-performance
 enterprise blockchain deployments. It keeps Fabric's core execute-order-validate-commit
 architecture while making significant architectural changes to achieve
 200,000+ TPS with horizontal scalability.
 
-| Feature | Fabric | Fabric-X |
+| Feature | Fabric | Chaguar |
 |---------|--------|----------|
 | **Execution Model** | execute-order-validate-commit | execute-order-validate-commit |
 | **Endorsement Architecture** | Chaincode (rigid, no access to local/external states, difficult custom logic per org) | FSC Views or custom endorsers (local states, custom logic per organization) |
@@ -74,9 +74,9 @@ architecture while making significant architectural changes to achieve
 | **Read-Write Sets** | Read set, Write set | Read only set, Read-Write set, Blind write set |
 | **Data Model** | Key-value-version | Key-value-version |
 | **Database** | LevelDB, CouchDB | PostgreSQL, YugabyteDB |
-| **Configuration/Genesis Block** | Standard config | Almost the same, with extra Fabric-X parameters |
+| **Configuration/Genesis Block** | Standard config | Almost the same, with extra Chaguar parameters |
 
-Fabric-X maintains: permissioned membership, MSP-backed identities, policies,
+Chaguar maintains: permissioned membership, MSP-backed identities, policies,
 immutable ledger, read/write sets, and execute-order-validate-commit transaction
 processing.
 
@@ -93,11 +93,11 @@ general-purpose languages. For detailed documentation, see
 
 However, Fabric has performance limitations (~2,000 TPS) and a rigid chaincode
 programming model, making it unsuitable for high-throughput use cases like
-tokenization. Fabric-X addresses these limitations.
+tokenization. Chaguar addresses these limitations.
 
-## Hyperledger Fabric-X
+## Hyperledger Chaguar
 
-Fabric-X is built on Fabric's foundations but evolved for next-generation
+Chaguar is built on Fabric's foundations but evolved for next-generation
 enterprise requirements. It achieves 200,000+ TPS through architectural
 innovation while maintaining Fabric's core principles: permissioned membership,
 MSP-backed identities, policy-based governance, and the execute-order-validate-commit
@@ -105,7 +105,7 @@ model.
 
 ### Architecture Overview
 
-Fabric-X decomposes the monolithic Fabric peer and orderer into microservices
+Chaguar decomposes the monolithic Fabric peer and orderer into microservices
 that scale independently. This architectural decomposition enables pipelined
 execution, horizontal scalability, and independent resource allocation for each
 component based on workload characteristics. The ordering service handles
@@ -147,13 +147,13 @@ pipeline, processing blocks in parallel while maintaining consistency guarantees
 
 **1. Execute-Order-Validate-Commit Model**
 
-Fabric-X uses the same execute-order-validate-commit model as Fabric, maintaining
+Chaguar uses the same execute-order-validate-commit model as Fabric, maintaining
 compatibility with Fabric's transaction processing semantics. Both platforms
 separate transaction execution from ordering, enabling parallel processing and
 eliminating non-determinism before consensus is reached.
 
 The model consists of four phases that ensure transaction correctness while
-maximizing throughput. The key difference in Fabric-X is the microservices
+maximizing throughput. The key difference in Chaguar is the microservices
 implementation that enables horizontal scaling of each phase.
 
 - **Execute/Endorse**: FSC views or custom endorsers execute transaction logic
@@ -166,7 +166,7 @@ implementation that enables horizontal scaling of each phase.
   (valid and invalid) are recorded in the ledger
 
 The following diagram shows a four-organization setup where each organization
-hosts an endorser, orderer, and committer. This mirrors a typical Fabric-X
+hosts an endorser, orderer, and committer. This mirrors a typical Chaguar
 network where every organization participates in transaction endorsement,
 ordering, validation, commit, and query processing.
 
@@ -258,7 +258,7 @@ flowchart TB
 
 **2. FSC-Based Endorsement**
 
-Fabric-X eliminates chaincodes in favor of a more flexible endorsement model
+Chaguar eliminates chaincodes in favor of a more flexible endorsement model
 based on the Fabric Smart Client (FSC) SDK. This approach removes the Docker
 container overhead associated with chaincode execution and enables richer,
 stateful application protocols that can maintain local state between transactions.
@@ -268,7 +268,7 @@ the application process or as standalone services. This enables organization-spe
 custom logic, direct access to local state, and interactive protocols between
 parties before transaction submission. Custom endorsers can also be built for
 non-FSC clients, enabling integration with legacy systems while maintaining
-compatibility with the Fabric-X endorsement model.
+compatibility with the Chaguar endorsement model.
 
 FSC views and custom endorsers can also provide fine-grained data privacy.
 Applications can store sensitive data locally, share it offline only with
@@ -325,7 +325,7 @@ with optimized schema design and stored procedures for common operations.
 
 **5. Single Channel with Namespaces**
 
-Unlike Fabric's multi-channel architecture, Fabric-X uses a single shared channel
+Unlike Fabric's multi-channel architecture, Chaguar uses a single shared channel
 with namespaces for logical separation of application state and policies. This
 design simplifies network management by eliminating the operational overhead of
 creating and maintaining multiple channels while still providing isolation
@@ -333,7 +333,7 @@ between applications.
 
 Namespaces provide logical scope for application state, endorsement policies,
 and validation policies. Each namespace operates independently with its own
-state database and policy configuration. Note that Fabric-X does not support
+state database and policy configuration. Note that Chaguar does not support
 private data collections; applications requiring confidentiality should implement
 application-level encryption before transaction data is ordered.
 
@@ -343,14 +343,14 @@ application-level encryption before transaction data is ordered.
 
 ### Performance Characteristics
 
-Fabric-X achieves 200,000+ TPS through architectural innovations that enable
+Chaguar achieves 200,000+ TPS through architectural innovations that enable
 horizontal scaling and parallel processing. The microservices architecture allows
 independent scaling of batchers and committers based on workload characteristics,
 ensuring optimal resource utilization across the system.
 
 The combination of sharded ordering, parallel validation through dependency
 graphs, elimination of Docker container overhead, and efficient database
-integration enables Fabric-X to achieve order-of-magnitude performance
+integration enables Chaguar to achieve order-of-magnitude performance
 improvements over traditional blockchain platforms. PostgreSQL and YugabyteDB
 provide robust, scalable storage with support for advanced features like
 stored procedures and distributed transactions.
@@ -364,33 +364,33 @@ stored procedures and distributed transactions.
 - **Efficient Database**: PostgreSQL/YugabyteDB with optimized schema and
   stored procedures
 
-### Fabric-X Ecosystem
+### Chaguar Ecosystem
 
-Fabric-X is a collection of projects that provide the building blocks for
+Chaguar is a collection of projects that provide the building blocks for
 enterprise blockchain applications. The Fabric Smart Client (FSC) provides the
-view SDK for implementing endorsement protocols, while fabric-x provides sample
-networks and the Fabric-X CLI tools such as configtxgen and cryptogen.
+view SDK for implementing endorsement protocols, while Chaguar/chaguar provides sample
+networks and the Chaguar CLI tools such as configtxgen and cryptogen.
 
 The ecosystem includes the actual implementation of all major components:
-fabric-x-orderer for the Arma ordering service, fabric-x-committer for the
-validation and commit pipeline, and fabric-x-endorser for FSC-based endorsement
+Chaguar/orderer for the Arma ordering service, Chaguar/committer for the
+validation and commit pipeline, and Chaguar/endorser for FSC-based endorsement
 frameworks. Additional tools and libraries support application development,
 network operations, and monitoring.
 
 - **Fabric Smart Client (FSC)**: View SDK for endorsement protocols ([GitHub](https://github.com/hyperledger-labs/fabric-smart-client))
-- **fabric-x**: Integration, samples, end-to-end tests, and CLI tools ([GitHub](https://github.com/hyperledger/fabric-x))
-- **fabric-x-common**: Shared MSP and protoutil libraries ([GitHub](https://github.com/hyperledger/fabric-x-common))
-- **fabric-x-orderer**: Arma ordering service implementation ([GitHub](https://github.com/hyperledger/fabric-x-orderer))
-- **fabric-x-committer**: Validation and commit pipeline services ([GitHub](https://github.com/hyperledger/fabric-x-committer))
-- **fabric-x-endorser**: FSC-based endorsement framework ([GitHub](https://github.com/hyperledger/fabric-x-endorser))
+- **Chaguar/chaguar**: Integration, samples, end-to-end tests, and CLI tools ([GitHub](https://github.com/Chaguar/chaguar))
+- **Chaguar/common**: Shared MSP and protoutil libraries ([GitHub](https://github.com/Chaguar/common))
+- **Chaguar/orderer**: Arma ordering service implementation ([GitHub](https://github.com/Chaguar/orderer))
+- **Chaguar/committer**: Validation and commit pipeline services ([GitHub](https://github.com/Chaguar/committer))
+- **Chaguar/endorser**: FSC-based endorsement framework ([GitHub](https://github.com/Chaguar/endorser))
 
 ## Membership and Identity
 
-Both Fabric and Fabric-X use MSP-based membership services with X.509 and Idemix
+Both Fabric and Chaguar use MSP-based membership services with X.509 and Idemix
 identities. The identity management model is identical in both platforms,
 providing a consistent approach to participant authentication and authorization
 across the network. This compatibility ensures that existing Fabric identity
-infrastructure can be reused when migrating to Fabric-X.
+infrastructure can be reused when migrating to Chaguar.
 
 The Membership Service Provider (MSP) abstracts the underlying cryptographic
 mechanisms, allowing organizations to manage their identities using standard
@@ -398,10 +398,10 @@ X.509 certificates or advanced Idemix credentials for enhanced privacy. Each
 organization in the network maintains its own MSP, defining the root certificate
 authorities and organizational units that constitute its membership.
 
-Fabric-X inherits Fabric's identity model without modification, meaning that
+Chaguar inherits Fabric's identity model without modification, meaning that
 tools and processes for identity generation, certificate rotation, and MSP
 configuration remain compatible. The cryptogen and configtxgen CLI tools in
-fabric-x can generate cryptographic material and configuration blocks using the
+Chaguar/chaguar can generate cryptographic material and configuration blocks using the
 same identity structures as Fabric.
 
 ## Policies
@@ -412,12 +412,12 @@ This policy language provides a flexible yet simple mechanism for specifying
 which organizations must endorse transactions and what conditions must be met
 for validation.
 
-Policies in Fabric-X are defined at the namespace level, allowing different
+Policies in Chaguar are defined at the namespace level, allowing different
 applications to have different endorsement requirements within the same channel.
 The policy DSL supports complex combinations, such as requiring endorsements
 from a subset of organizations or specific roles within organizations.
 
-The policy evaluation engine in Fabric-X is identical to Fabric's, ensuring
+The policy evaluation engine in Chaguar is identical to Fabric's, ensuring
 consistent behavior across both platforms. Policies can be updated through
 configuration transactions, and the policy framework integrates seamlessly with
 the MSP-based identity system to enforce access control and transaction
@@ -425,18 +425,18 @@ validation rules.
 
 ## Data Model and Database
 
-Both Fabric and Fabric-X use a key-value-version data model, where each state
+Both Fabric and Chaguar use a key-value-version data model, where each state
 key maintains a version number that is incremented on every write. This
 versioning enables MVCC (Multi-Version Concurrency Control) validation, ensuring
 that transactions only commit if their read sets remain valid at commit time.
 
 Fabric supports LevelDB for key-value storage and CouchDB for rich queries with
-JSON documents. Fabric-X uses PostgreSQL or YugabyteDB, providing better
+JSON documents. Chaguar uses PostgreSQL or YugabyteDB, providing better
 performance, horizontal scalability, and advanced database features. PostgreSQL
 offers robust ACID compliance, while YugabyteDB adds distributed SQL capabilities
 for multi-region deployments.
 
-The choice of PostgreSQL/YugabyteDB in Fabric-X enables optimized schema design,
+The choice of PostgreSQL/YugabyteDB in Chaguar enables optimized schema design,
 stored procedures for common operations, and efficient indexing strategies. The
 database layer is tightly integrated with the validator-committer service,
 reducing latency and improving throughput compared to Fabric's more abstracted
@@ -444,21 +444,21 @@ storage layer.
 
 ## Configuration and Genesis Block
 
-Fabric-X genesis blocks are almost identical to Fabric's, containing the
+Chaguar genesis blocks are almost identical to Fabric's, containing the
 configuration for the channel, organizations, MSPs, and policies. The genesis
 block structure follows the same format, ensuring compatibility with Fabric's
 configuration transaction model and tools.
 
-Fabric-X extends the genesis block with additional parameters required for the
+Chaguar extends the genesis block with additional parameters required for the
 microservices architecture. These include router configuration (endpoint
 bindings, batcher discovery), batcher configuration (sharding strategy, disk
 paths), consenter configuration (SmartBFT parameters, peer lists), assembler
 configuration (block assembly parameters), and committer service configuration
 (database connection strings, service discovery endpoints).
 
-The configtxgen binary in fabric-x supports these additional Fabric-X parameters.
-Fabric-X configuration generation is not backward compatible with Fabric network
-configuration generation because Fabric-X introduces microservices-specific
+The configtxgen binary in Chaguar/chaguar supports these additional Chaguar parameters.
+Chaguar configuration generation is not backward compatible with Fabric network
+configuration generation because Chaguar introduces microservices-specific
 settings and deployment assumptions.
 
 ## Ecosystem
@@ -466,33 +466,33 @@ settings and deployment assumptions.
 Fabric has a large ecosystem of tools for building, testing, and managing
 networks. See the [Fabric Ecosystem](https://lf-hyperledger.atlassian.net/wiki/spaces/fabric/pages/22839837/Ecosystem).
 
-Fabric-X is the collection of the following projects:
+Chaguar is the collection of the following projects:
 
 - **Fabric Smart Client (FSC)**: View SDK for endorsement protocols ([GitHub](https://github.com/hyperledger-labs/fabric-smart-client))
-- **fabric-x**: Integration, samples, end-to-end tests, and CLI tools ([GitHub](https://github.com/hyperledger/fabric-x))
-- **fabric-x-common**: Shared MSP and protoutil libraries ([GitHub](https://github.com/hyperledger/fabric-x-common))
-- **fabric-x-orderer**: Arma ordering service implementation ([GitHub](https://github.com/hyperledger/fabric-x-orderer))
-- **fabric-x-committer**: Validation and commit pipeline services ([GitHub](https://github.com/hyperledger/fabric-x-committer))
-- **fabric-x-endorser**: FSC-based endorsement framework ([GitHub](https://github.com/hyperledger/fabric-x-endorser))
+- **Chaguar/chaguar**: Integration, samples, end-to-end tests, and CLI tools ([GitHub](https://github.com/Chaguar/chaguar))
+- **Chaguar/common**: Shared MSP and protoutil libraries ([GitHub](https://github.com/Chaguar/common))
+- **Chaguar/orderer**: Arma ordering service implementation ([GitHub](https://github.com/Chaguar/orderer))
+- **Chaguar/committer**: Validation and commit pipeline services ([GitHub](https://github.com/Chaguar/committer))
+- **Chaguar/endorser**: FSC-based endorsement framework ([GitHub](https://github.com/Chaguar/endorser))
 
 ## Conclusion
 
 Any serious evaluation of blockchain platforms should include Hyperledger Fabric
 in its short list. For high-performance enterprise use cases requiring
-200,000+ TPS with BFT consensus, Fabric-X extends Fabric with a microservices
+200,000+ TPS with BFT consensus, Chaguar extends Fabric with a microservices
 architecture, Arma ordering, and dedicated committer services.
 
 Combined, the differentiating capabilities of Fabric make it a highly scalable
 system for permissioned blockchains supporting flexible trust assumptions that
 enable the platform to support a wide range of industry use cases ranging from
 government, to finance, to supply-chain logistics, to healthcare and so much
-more. Fabric-X builds on these capabilities to meet the most demanding
+more. Chaguar builds on these capabilities to meet the most demanding
 enterprise throughput requirements.
 
 ## Acknowledgement
 
 The preceding is derived from
-["Fabric-X: Scaling Hyperledger Fabric for Asset Exchange"](https://eprint.iacr.org/2023/1717):
+["Chaguar: Scaling Hyperledger Fabric for Asset Exchange"](https://eprint.iacr.org/2023/1717):
 
 - Elli Androulaki, IBM Research - Zurich
 - Marcus Brandenburger, IBM Research - Zurich

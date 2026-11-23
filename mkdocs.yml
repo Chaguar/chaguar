@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-site_name: Fabric-X Documentation
+site_name: Chaguar Documentation
 site_description: Enterprise-grade permissioned distributed ledger with horizontal scalability
-site_author: Hyperledger Fabric-X Contributors
-copyright: Copyright 2026 Hyperledger Fabric-X Contributors
+site_author: Chaguar Contributors
+copyright: Copyright 2026 Chaguar Contributors
 
 theme:
   name: material
@@ -34,13 +34,13 @@ plugins:
       cleanup: true
       nav_repos:
         - name: orderer
-          import_url: https://github.com/hyperledger/fabric-x-orderer?branch=v1.0.0&edit_uri=/
+          import_url: https://github.com/Chaguar/orderer?branch=v1.0.0&edit_uri=/
           imports:
             - docs/architecture.md
             - docs/cli/arma.md
             - docs/cli/armageddon.md
         - name: committer
-          import_url: https://github.com/hyperledger/fabric-x-committer?branch=v1.0.0&edit_uri=/
+          import_url: https://github.com/Chaguar/committer?branch=v1.0.0&edit_uri=/
           imports:
             - docs/index.md
             - docs/architecture.md

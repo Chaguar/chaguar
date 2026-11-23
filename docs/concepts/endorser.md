@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# Endorsement Models in Fabric-X
+# Endorsement Models in Chaguar
 
 ## Overview
 
-Fabric-X supports multiple endorsement models, providing flexibility for different use cases while maintaining compatibility with Hyperledger Fabric policies. This document covers the primary endorsement approaches: **FSC-based endorsement**, **custom endorsers**, **Fabric-compatible policies**, and **threshold signatures**.
+Chaguar supports multiple endorsement models, providing flexibility for different use cases while maintaining compatibility with Hyperledger Fabric policies. This document covers the primary endorsement approaches: **FSC-based endorsement**, **custom endorsers**, **Fabric-compatible policies**, and **threshold signatures**.
 
 The endorsement model architecture brings together three distinct approaches under a unified policy framework. FSC-based endorsement serves as the primary model for most smart contract workloads, while custom endorsers enable integration with external systems and specialized cryptographic operations. Threshold signatures provide an advanced mechanism for privacy-sensitive applications requiring signer anonymity. All three models operate within Fabric-compatible policies that support familiar AND, OR, and NOutOf operators.
 
@@ -26,7 +26,7 @@ flowchart TB
 
 ### Architecture
 
-Fabric-X uses **Fabric-Smart-Client (FSC) views** as the primary endorsement mechanism. Unlike Hyperledger Fabric Classic where chaincode executes in Docker containers, FSC views run as native Go code, providing significant performance improvements.
+Chaguar uses **Fabric-Smart-Client (FSC) views** as the primary endorsement mechanism. Unlike Hyperledger Fabric Classic where chaincode executes in Docker containers, FSC views run as native Go code, providing significant performance improvements.
 
 ```mermaid
 flowchart LR
@@ -100,7 +100,7 @@ func (v *TokenTransferView) Call(ctx view.Context) (interface{}, error) {
 
 FSC views exhibit several key characteristics that distinguish them from traditional chaincode. Execution occurs as native Go code without Docker container overhead, resulting in approximately 25x faster performance compared to container-based chaincode. The model supports multi-round protocols between parties, enabling interactive transaction flows that were difficult to implement in Fabric Classic. State access happens through direct read-write set manipulation, giving developers fine-grained control over ledger operations. Identity management leverages the FSC identity framework, which remains MSP-based and compatible with existing Fabric certificate structures.
 
-The performance advantages of FSC-based endorsement become clear when comparing the endorsement flow to container-based approaches. In Fabric Classic, a client proposal must traverse Docker overhead before reaching chaincode execution, then return through the same path, typically requiring 50-100ms latency. FSC-based endorsement in Fabric-X eliminates the Docker layer entirely, allowing the client to communicate directly with the native FSC view. This streamlined path reduces latency to 10-20ms, enabling throughput of approximately 50,000 transactions per second.
+The performance advantages of FSC-based endorsement become clear when comparing the endorsement flow to container-based approaches. In Fabric Classic, a client proposal must traverse Docker overhead before reaching chaincode execution, then return through the same path, typically requiring 50-100ms latency. FSC-based endorsement in Chaguar eliminates the Docker layer entirely, allowing the client to communicate directly with the native FSC view. This streamlined path reduces latency to 10-20ms, enabling throughput of approximately 50,000 transactions per second.
 
 ```mermaid
 flowchart LR
@@ -110,7 +110,7 @@ flowchart LR
         CE --> C2["Client"]
     end
     
-    subgraph FSC["FSC-Based (Fabric-X)"]
+    subgraph FSC["FSC-Based (Chaguar)"]
         FC1["Client"] --> FV["FSC View<br/>Native"]
         FV --> FC2["Client"]
     end
@@ -125,11 +125,11 @@ flowchart LR
 
 ### Architecture
 
-Fabric-X will support **custom endorser services** for specialized endorsement logic that may not fit the FSC view model. Custom endorsers run as independent microservices and communicate via gRPC, allowing developers to implement endorsement logic in any programming language that supports gRPC communication.
+Chaguar will support **custom endorser services** for specialized endorsement logic that may not fit the FSC view model. Custom endorsers run as independent microservices and communicate via gRPC, allowing developers to implement endorsement logic in any programming language that supports gRPC communication.
 
 The following describes the planned implementation.
 
-The custom endorser architecture follows a client-server model where the client sends a gRPC proposal containing the transaction payload, read set, and proposer identity. The custom endorser service processes this proposal through its business logic layer, which can be implemented in any language. The service accesses state through the Fabric-X SDK, computes the read-write set, signs the result, and returns an endorsement response containing the read-write set, signature, and certificate.
+The custom endorser architecture follows a client-server model where the client sends a gRPC proposal containing the transaction payload, read set, and proposer identity. The custom endorser service processes this proposal through its business logic layer, which can be implemented in any language. The service accesses state through the Chaguar SDK, computes the read-write set, signs the result, and returns an endorsement response containing the read-write set, signature, and certificate.
 
 ```mermaid
 flowchart LR
@@ -148,7 +148,7 @@ flowchart LR
     BL --> SA
 ```
 
-Custom endorsers serve several important use cases that extend beyond the capabilities of FSC views. Legacy integration represents one primary use case, where organizations need to connect existing systems such as mainframes or legacy databases to the Fabric-X network. Specialized cryptographic operations form another use case, particularly for applications requiring zero-knowledge proof generation or other advanced cryptographic primitives not available in the standard FSC framework. External data integration enables oracle-style functionality where price feeds, weather data, or other off-chain information sources need to be incorporated into transactions. Compliance and regulatory checks, such as AML/KYC validation, often require integration with external systems that custom endorsers can facilitate. Multi-party computation protocols for privacy-preserving analytics also benefit from the flexibility that custom endorsers provide.
+Custom endorsers serve several important use cases that extend beyond the capabilities of FSC views. Legacy integration represents one primary use case, where organizations need to connect existing systems such as mainframes or legacy databases to the Chaguar network. Specialized cryptographic operations form another use case, particularly for applications requiring zero-knowledge proof generation or other advanced cryptographic primitives not available in the standard FSC framework. External data integration enables oracle-style functionality where price feeds, weather data, or other off-chain information sources need to be incorporated into transactions. Compliance and regulatory checks, such as AML/KYC validation, often require integration with external systems that custom endorsers can facilitate. Multi-party computation protocols for privacy-preserving analytics also benefit from the flexibility that custom endorsers provide.
 
 ### Custom Endorser Implementation
 
@@ -227,7 +227,7 @@ Registering custom endorsers requires configuration that specifies the endorser 
 endorsers:
   - name: "compliance-endorser"
     type: "custom"
-    endpoint: "compliance.fabric-x.svc:7052"
+    endpoint: "compliance.chaguar.svc:7052"
     namespaces:
       - "tokens"
       - "assets"
@@ -237,7 +237,7 @@ endorsers:
       
   - name: "oracle-endorser"
     type: "custom"
-    endpoint: "oracle.fabric-x.svc:7053"
+    endpoint: "oracle.chaguar.svc:7053"
     namespaces:
       - "market-data"
     timeout: 5s
@@ -247,7 +247,7 @@ endorsers:
 
 ### Policy Syntax
 
-Fabric-X maintains compatibility with Hyperledger Fabric endorsement policy syntax, enabling migration of existing policies without modification. The policy language supports three fundamental operators that can be combined to express complex endorsement requirements. The AND operator requires all specified principals to endorse the transaction, ensuring unanimous agreement among the designated parties. The OR operator requires at least one principal from the list to endorse, providing flexibility in who can validate a transaction. The NOutOf operator specifies that at least n principals from a list must endorse, enabling majority or threshold-based approval schemes. These operators can be nested arbitrarily to express sophisticated endorsement logic that mirrors organizational governance structures.
+Chaguar maintains compatibility with Hyperledger Fabric endorsement policy syntax, enabling migration of existing policies without modification. The policy language supports three fundamental operators that can be combined to express complex endorsement requirements. The AND operator requires all specified principals to endorse the transaction, ensuring unanimous agreement among the designated parties. The OR operator requires at least one principal from the list to endorse, providing flexibility in who can validate a transaction. The NOutOf operator specifies that at least n principals from a list must endorse, enabling majority or threshold-based approval schemes. These operators can be nested arbitrarily to express sophisticated endorsement logic that mirrors organizational governance structures.
 
 ```mermaid
 flowchart TB
@@ -352,7 +352,7 @@ namespace: token-ns
 
 ### Overview
 
-Fabric-X supports **threshold signatures** as an advanced endorsement mechanism. Threshold signatures enable a group of signers to collectively produce a single signature, where any `t` out of `n` participants can generate a valid signature. This approach differs fundamentally from traditional multi-signature schemes, where each signer produces an independent signature that must all be stored and verified separately.
+Chaguar supports **threshold signatures** as an advanced endorsement mechanism. Threshold signatures enable a group of signers to collectively produce a single signature, where any `t` out of `n` participants can generate a valid signature. This approach differs fundamentally from traditional multi-signature schemes, where each signer produces an independent signature that must all be stored and verified separately.
 
 For detailed threshold signature documentation, see [threshold-signatures.md](threshold-signatures.md).
 
@@ -381,7 +381,7 @@ flowchart TB
 
 ### BLS Signature Aggregation
 
-Fabric-X uses **BLS (Boneh-Lynn-Shacham)** signatures for threshold operations. BLS signatures possess several properties that make them ideal for threshold endorsement scenarios. The linear aggregation property allows multiple signatures to be mathematically summed into a single signature. This aggregated signature maintains a constant size of 48 bytes regardless of the number of signers involved. Verification requires only a single pairing operation, providing fast validation even when many signers participate. Perhaps most importantly for certain use cases, BLS signatures provide signer privacy since the aggregated signature does not reveal which specific signers contributed their partial signatures.
+Chaguar uses **BLS (Boneh-Lynn-Shacham)** signatures for threshold operations. BLS signatures possess several properties that make them ideal for threshold endorsement scenarios. The linear aggregation property allows multiple signatures to be mathematically summed into a single signature. This aggregated signature maintains a constant size of 48 bytes regardless of the number of signers involved. Verification requires only a single pairing operation, providing fast validation even when many signers participate. Perhaps most importantly for certain use cases, BLS signatures provide signer privacy since the aggregated signature does not reveal which specific signers contributed their partial signatures.
 
 | Property | Benefit |
 |----------|---------|
@@ -451,7 +451,7 @@ Consortium voting applications benefit from threshold signatures because they pr
 
 ### Migration Path from Fabric Classic
 
-Organizations migrating from Hyperledger Fabric Classic to Fabric-X can follow a phased approach that minimizes disruption while progressively realizing benefits. The first phase focuses on policy compatibility, where existing Fabric policies continue to work unchanged. The AND, OR, and NOutOf syntax remains preserved, and organizations can adopt namespace-based policy configuration without modifying their endorsement logic.
+Organizations migrating from Hyperledger Fabric Classic to Chaguar can follow a phased approach that minimizes disruption while progressively realizing benefits. The first phase focuses on policy compatibility, where existing Fabric policies continue to work unchanged. The AND, OR, and NOutOf syntax remains preserved, and organizations can adopt namespace-based policy configuration without modifying their endorsement logic.
 
 The second phase involves refactoring chaincode to FSC views. This step delivers substantial performance improvements of approximately 25x by eliminating Docker container overhead. Organizations can realize immediate benefits from reduced latency and increased throughput while maintaining the same business logic.
 
@@ -604,7 +604,7 @@ logging:
 ```
 
 ```bash
-fabric-x policy-test --policy "AND(Org1, Org2)" --endorsements Org1,Org2
+chaguar policy-test --policy "AND(Org1, Org2)" --endorsements Org1,Org2
 ```
 
 ```
@@ -617,7 +617,7 @@ endorsement_failures_total{namespace="tokens"}
 
 - [Fabric-Smart-Client Documentation](https://github.com/hyperledger-labs/fabric-smart-client)
 - [Fabric-Token-SDK](https://github.com/hyperledger-labs/fabric-token-sdk)
-- [Threshold Signatures in Fabric-X](threshold-signatures.md)
+- [Threshold Signatures in Chaguar](threshold-signatures.md)
 - [Policies and Access Control](policies/policies.md)
-- [Fabric-X Transaction Model](fabric-x-model.md)
+- [Chaguar Transaction Model](chaguar-model.md)
 - [BLS12-381 Curve Specification](https://hackmd.io/@benjaminion/bls12-381)

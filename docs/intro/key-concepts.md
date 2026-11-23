@@ -1,14 +1,14 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # Key Concepts Overview
 
-This page provides high-level summaries of core Fabric-X concepts. Each section links to detailed documentation.
+This page provides high-level summaries of core Chaguar concepts. Each section links to detailed documentation.
 
-The goal is to explain how the major ideas fit together before you dive into component-specific pages. Fabric-X keeps many familiar Fabric concepts, such as identities, endorsement, policies, and immutable ledgers, but changes how high-throughput transaction processing is divided across services. Understanding that separation makes the rest of the documentation easier to follow.
+The goal is to explain how the major ideas fit together before you dive into component-specific pages. Chaguar keeps many familiar Fabric concepts, such as identities, endorsement, policies, and immutable ledgers, but changes how high-throughput transaction processing is divided across services. Understanding that separation makes the rest of the documentation easier to follow.
 
 ## Table of Contents
 
 1. [Blockchain Basics](#blockchain-basics)
-2. [Fabric-X Model: Execute-Order-Validate-Commit](#fabric-x-model-execute-order-validate-commit)
+2. [Chaguar Model: Execute-Order-Validate-Commit](#chaguar-model-execute-order-validate-commit)
 3. [FSC Endorsement](#fsc-endorsement)
 4. [Arma Ordering Service](#arma-ordering-service)
 5. [Committer Pipeline](#committer-pipeline)
@@ -23,27 +23,27 @@ The goal is to explain how the major ideas fit together before you dive into com
 
 A blockchain is a distributed, immutable ledger that records transactions across a network of nodes. The distributed nature means no single point of control exists, with all participants maintaining synchronized copies of the ledger. Once transactions are committed, they become immutable and cannot be altered or deleted, ensuring a permanent record. All participants can verify the transaction history, providing transparency across the network. Cryptographic security is maintained through hash chains and digital signatures that ensure data integrity.
 
-In permissioned blockchains like Fabric-X, participants are known and authenticated, enabling enterprise use cases requiring privacy, compliance, and governance. Membership is not open-ended: organizations define who can operate services, submit transactions, endorse proposals, administer configuration, and query state. This makes permissioned ledgers suitable for regulated networks where accountability and policy enforcement are as important as decentralization.
+In permissioned blockchains like Chaguar, participants are known and authenticated, enabling enterprise use cases requiring privacy, compliance, and governance. Membership is not open-ended: organizations define who can operate services, submit transactions, endorse proposals, administer configuration, and query state. This makes permissioned ledgers suitable for regulated networks where accountability and policy enforcement are as important as decentralization.
 
-Fabric-X uses this permissioned foundation to support shared infrastructure between multiple organizations. Each participant can independently verify ordered blocks and validation results, while the network still enforces common rules for identity, endorsement, and configuration.
+Chaguar uses this permissioned foundation to support shared infrastructure between multiple organizations. Each participant can independently verify ordered blocks and validation results, while the network still enforces common rules for identity, endorsement, and configuration.
 
 **Learn more**: [Blockchain Deep Dive](../concepts/blockchain.md)
 
 ---
 
-## Fabric-X Model: Execute-Order-Validate-Commit
+## Chaguar Model: Execute-Order-Validate-Commit
 
-Fabric-X follows Fabric's execute-order-validate-commit pattern. Execution and endorsement happen before ordering in FSC views or custom endorsement logic. Arma orders endorsed transaction bytes. Committer services verify signatures and policies, perform MVCC validation, commit valid writes, and record final status for every transaction.
+Chaguar follows Fabric's execute-order-validate-commit pattern. Execution and endorsement happen before ordering in FSC views or custom endorsement logic. Arma orders endorsed transaction bytes. Committer services verify signatures and policies, perform MVCC validation, commit valid writes, and record final status for every transaction.
 
 This separation keeps application execution outside ordering. Ordered block inclusion gives a transaction a deterministic position; final outcome comes from committer validation and commit.
 
-**Learn more**: [Fabric-X Model](../concepts/fabric-x-model.md), [Transaction Flow](../concepts/transaction-flow.md)
+**Learn more**: [Chaguar Model](../concepts/chaguar-model.md), [Transaction Flow](../concepts/transaction-flow.md)
 
 ---
 
 ## FSC Endorsement
 
-**FSC (Fabric Smart Client)** is a client-side framework for building distributed application workflows for Fabric and Fabric-X. It focuses on business logic, peer-to-peer coordination, transaction orchestration, and application-specific state management rather than only chaincode execution.
+**FSC (Fabric Smart Client)** is a client-side framework for building distributed application workflows for Fabric and Chaguar. It focuses on business logic, peer-to-peer coordination, transaction orchestration, and application-specific state management rather than only chaincode execution.
 
 ```mermaid
 flowchart TD
@@ -59,11 +59,11 @@ flowchart TD
 
 FSC applications are organized around **views**: Go functions or protocols that implement interactive business workflows. Views can coordinate with other parties, use local application databases, call services, collect signatures, and construct ledger transactions. This lets endorsement logic be part of a richer distributed workflow instead of only a chaincode invocation.
 
-A view can represent an application process such as issuing a token, transferring an asset, requesting a counterparty signature, or preparing a settlement instruction. Because views run in application-controlled nodes, developers can integrate external systems and local business checks before producing the transaction that Fabric-X orders and commits.
+A view can represent an application process such as issuing a token, transferring an asset, requesting a counterparty signature, or preparing a settlement instruction. Because views run in application-controlled nodes, developers can integrate external systems and local business checks before producing the transaction that Chaguar orders and commits.
 
 ### Custom Endorsers
 
-Fabric-X can also use custom endorsers built for a specific application architecture. These endorsers produce read/write sets and signatures that the committer later verifies against namespace endorsement policies; Fabric-X does not require a predefined custom-endorser programming interface in this overview.
+Chaguar can also use custom endorsers built for a specific application architecture. These endorsers produce read/write sets and signatures that the committer later verifies against namespace endorsement policies; Chaguar does not require a predefined custom-endorser programming interface in this overview.
 
 Custom endorsers are useful when an application already has a service boundary, when business logic should run outside FSC, or when teams want tighter control over APIs and deployment shape. The important requirement is compatibility with the transaction and policy material that downstream validation expects.
 
@@ -81,7 +81,7 @@ Custom endorsers are useful when an application already has a service boundary, 
 
 ## Arma Ordering Service
 
-**Arma** is Fabric-X's Byzantine Fault Tolerant ordering service. It accepts endorsed transaction bytes, batches them, reaches agreement on their order, and assembles ordered blocks for committers.
+**Arma** is Chaguar's Byzantine Fault Tolerant ordering service. It accepts endorsed transaction bytes, batches them, reaches agreement on their order, and assembles ordered blocks for committers.
 
 Arma separates ordering from transaction validation. It does not execute application logic, evaluate namespace endorsement policy, or perform MVCC validation. Those checks happen before ordering during endorsement or after ordering during commit processing.
 
@@ -97,7 +97,7 @@ The **committer pipeline** validates ordered blocks and records final transactio
 
 Commit processing is separate from ordering. A transaction can be ordered by Arma but still be marked invalid if it lacks required endorsements or if its read set is stale at its block position.
 
-Fabric-X also provides a Query Service for read-only access to committed state. Query traffic is kept separate from validation and commit work so applications can read state without coupling to commit workers.
+Chaguar also provides a Query Service for read-only access to committed state. Query traffic is kept separate from validation and commit work so applications can read state without coupling to commit workers.
 
 **Learn more**: [Architecture Reference](../architecture/index.md), [Transaction Flow](../concepts/transaction-flow.md)
 
@@ -105,15 +105,15 @@ Fabric-X also provides a Query Service for read-only access to committed state. 
 
 ## Network Structure: Single Channel
 
-Fabric-X simplifies network topology with a **single channel + namespaces** model.
+Chaguar simplifies network topology with a **single channel + namespaces** model.
 
 ### Traditional Fabric: Multi-Channel Complexity
 
 Traditional Fabric requires separate channel configuration for each use case, making cross-channel communication require complex patterns. The operational overhead grows significantly with channel count.
 
-### Fabric-X: Single Channel + Namespaces
+### Chaguar: Single Channel + Namespaces
 
-Fabric-X uses **one channel** for the entire network, with **namespaces** enabling different endorsement policies per use case. Applications use namespaces to separate business domains and policy scope.
+Chaguar uses **one channel** for the entire network, with **namespaces** enabling different endorsement policies per use case. Applications use namespaces to separate business domains and policy scope.
 
 A namespace can be treated as an application or domain boundary within the shared channel. It lets one network host multiple asset types, workflows, or participant groups while keeping a single ordering and commit history. This reduces channel sprawl and makes network-wide upgrades easier to coordinate.
 
@@ -125,7 +125,7 @@ A namespace can be treated as an application or domain boundary within the share
 
 ## Identity and MSP
 
-Fabric-X uses a robust identity model based on **X.509 certificates** and **Membership Service Providers (MSP)**.
+Chaguar uses a robust identity model based on **X.509 certificates** and **Membership Service Providers (MSP)**.
 
 ### Identities
 
@@ -147,7 +147,7 @@ A **Principal** represents an identity and role combination (e.g., `Org1.admin`)
 
 ## Policies
 
-Policies govern **who can do what** in Fabric-X.
+Policies govern **who can do what** in Chaguar.
 
 ### Policy Types
 
@@ -167,7 +167,7 @@ Policy evaluation turns signatures into governance decisions. For example, a tra
 
 ## Ledger
 
-The Fabric-X ledger consists of **world state** and **transaction log**.
+The Chaguar ledger consists of **world state** and **transaction log**.
 
 ### World State
 
@@ -194,7 +194,7 @@ Keeping invalid transactions in the log is intentional. It records that the netw
 ### Related Concepts
 
 - [Blockchain](../concepts/blockchain.md) - Distributed ledger fundamentals
-- [Fabric-X Model](../concepts/fabric-x-model.md) - Execute-Order-Validate-Commit architecture
+- [Chaguar Model](../concepts/chaguar-model.md) - Execute-Order-Validate-Commit architecture
 - [Network](../concepts/network.md) - Network topology and namespaces
 - [Identity](../concepts/identity.md) - X.509 identity model
 - [MSP](../concepts/msp.md) - Membership service providers

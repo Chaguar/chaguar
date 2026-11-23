@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# Fabric-X Troubleshooting Guide
+# Chaguar Troubleshooting Guide
 
-This guide provides diagnostic approaches for common issues in Fabric-X deployments.
+This guide provides diagnostic approaches for common issues in Chaguar deployments.
 
 ## Quick Diagnostics
 
@@ -329,6 +329,5 @@ curl http://localhost:9090/debug/pprof/trace?seconds=30 > trace.out
 
 ## Support Resources
 
-- Documentation: https://github.com/hyperledger/fabric-x-docs
-- Issues: https://github.com/hyperledger/fabric-x/issues
-- Mailing List: fabric-x@lists.hyperledger.org
+- Documentation: https://github.com/Chaguar/chaguar/tree/main/docs
+- Issues: https://github.com/Chaguar/chaguar/issues

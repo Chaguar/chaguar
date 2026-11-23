@@ -69,13 +69,13 @@ Privacy presents another significant challenge in permissionless environments. A
 
 Permissioned blockchains take a fundamentally different approach by restricting network participation to known, verified entities. Members enroll through a trusted **Membership Service Provider (MSP)** that manages digital identities, creating an environment where all participants are accountable for their actions. This model aligns naturally with how businesses already operate, where relationships are established through contracts and legal frameworks before transactions occur.
 
-The verified identity model unlocks significant performance advantages. Since participants are known and accountable, consensus mechanisms do not require expensive cryptographic puzzles. Fabric-X uses SmartBFT through Arma to provide Byzantine Fault Tolerant ordering for known organizations. This supports much higher throughput and more predictable finality than proof-of-work public networks.
+The verified identity model unlocks significant performance advantages. Since participants are known and accountable, consensus mechanisms do not require expensive cryptographic puzzles. Chaguar uses SmartBFT through Arma to provide Byzantine Fault Tolerant ordering for known organizations. This supports much higher throughput and more predictable finality than proof-of-work public networks.
 
-Privacy and governance become tractable problems in permissioned environments. In Fabric-X, privacy is implemented primarily through FSC application protocols and off-chain storage patterns rather than ledger-level channels. Sensitive business data can stay with authorized participants while the shared ledger records anchors, hashes, commitments, and agreed state transitions. Governance frameworks can be established that align with business requirements, allowing for formal decision-making processes around network upgrades, policy changes, and dispute resolution. These characteristics make permissioned blockchains particularly well-suited for enterprise and consortium use cases where accountability, performance, and confidentiality are paramount.
+Privacy and governance become tractable problems in permissioned environments. In Chaguar, privacy is implemented primarily through FSC application protocols and off-chain storage patterns rather than ledger-level channels. Sensitive business data can stay with authorized participants while the shared ledger records anchors, hashes, commitments, and agreed state transitions. Governance frameworks can be established that align with business requirements, allowing for formal decision-making processes around network upgrades, policy changes, and dispute resolution. These characteristics make permissioned blockchains particularly well-suited for enterprise and consortium use cases where accountability, performance, and confidentiality are paramount.
 
 ## Why Permissioned for Enterprise?
 
-Fabric-X, like Hyperledger Fabric, is a **private** and **permissioned** blockchain platform. This architectural choice addresses critical enterprise requirements that permissionless blockchains simply cannot satisfy.
+Chaguar, like Hyperledger Fabric, is a **private** and **permissioned** blockchain platform. This architectural choice addresses critical enterprise requirements that permissionless blockchains simply cannot satisfy.
 
 ### Identity and Access Control
 
@@ -85,13 +85,13 @@ The audit capabilities of permissioned networks link every transaction to specif
 
 ### Performance and Scalability
 
-Enterprise applications demand high throughput and low latency that permissionless blockchains cannot deliver. Permissioned consensus mechanisms can optimize for known participants instead of anonymous miners. Fabric-X uses Arma and SmartBFT to order compact batch attestations and support high-throughput BFT ordering without energy-intensive mining.
+Enterprise applications demand high throughput and low latency that permissionless blockchains cannot deliver. Permissioned consensus mechanisms can optimize for known participants instead of anonymous miners. Chaguar uses Arma and SmartBFT to order compact batch attestations and support high-throughput BFT ordering without energy-intensive mining.
 
 Sub-second finality becomes achievable for time-sensitive business processes like securities settlement, supply chain tracking, and payment processing. Performance remains predictable without the mining delays or gas price fluctuations that plague public networks. Enterprises can plan capacity and guarantee service levels, which is essential for production business applications.
 
 ### Privacy and Confidentiality
 
-Business networks often include competitors who need to transact while protecting sensitive information. Fabric-X uses a single-channel model, so privacy is handled primarily through namespace policy, FSC application protocols, and off-chain storage patterns rather than Fabric Classic channels or private data collections.
+Business networks often include competitors who need to transact while protecting sensitive information. Chaguar uses a single-channel model, so privacy is handled primarily through namespace policy, FSC application protocols, and off-chain storage patterns rather than Fabric Classic channels or private data collections.
 
 A common pattern is to keep sensitive business data in participant-controlled systems while committing hashes, commitments, state transitions, or other verification material to the shared ledger. This preserves auditability and consistency without forcing every network participant to hold every private business field.
 
@@ -107,36 +107,36 @@ Industries like finance, healthcare, and supply chain operate under strict regul
 
 Regulatory reporting becomes more efficient with auditable transaction histories that can be queried and exported in formats required by oversight bodies. The combination of identity verification, access controls, and comprehensive audit trails creates a compliance-ready infrastructure that reduces the cost and complexity of regulatory adherence.
 
-## Fabric-X Architecture Overview
+## Chaguar Architecture Overview
 
-Fabric-X builds on these blockchain fundamentals with a modular architecture delivering high degrees of confidentiality, resiliency, flexibility, and scalability. It is designed to support pluggable implementations of different components and accommodate the complexity and intricacies that exist across the economic ecosystem.
+Chaguar builds on these blockchain fundamentals with a modular architecture delivering high degrees of confidentiality, resiliency, flexibility, and scalability. It is designed to support pluggable implementations of different components and accommodate the complexity and intricacies that exist across the economic ecosystem.
 
 ### Shared Ledger
 
-Fabric-X has a ledger subsystem comprising two components: the **world state** and the **transaction log**. Each participant has a copy of the ledger for every Fabric-X network they belong to.
+Chaguar has a ledger subsystem comprising two components: the **world state** and the **transaction log**. Each participant has a copy of the ledger for every Chaguar network they belong to.
 
 The **world state** component describes the state of the ledger at a given point in time. It uses a key-value data model: each namespace stores keys and their current values, along with version metadata used for validation. The **transaction log** component records all transactions which have resulted in the current value of the world state; it's the update history for the world state. The ledger, then, is a combination of the key-value world state database and the transaction log history.
 
-Fabric-X stores world state in PostgreSQL or YugabyteDB. These databases provide the durable key-value state view used by the committer pipeline. The transaction log records the ordered history of ledger updates used by the blockchain network.
+Chaguar stores world state in PostgreSQL or YugabyteDB. These databases provide the durable key-value state view used by the committer pipeline. The transaction log records the ordered history of ledger updates used by the blockchain network.
 
 ### Smart Contracts (FSC Views)
 
-Fabric-X smart contracts are implemented as **FSC (Fabric Smart Client) views** that are invoked by an application external to the blockchain when that application needs to interact with the ledger. In most cases, FSC views interact only with the database component of the ledger, the world state (querying it, for example), and not the transaction log.
+Chaguar smart contracts are implemented as **FSC (Fabric Smart Client) views** that are invoked by an application external to the blockchain when that application needs to interact with the ledger. In most cases, FSC views interact only with the database component of the ledger, the world state (querying it, for example), and not the transaction log.
 
-> **Note:** Unlike Fabric Classic where smart contracts run as "chaincode" in Docker containers, Fabric-X uses FSC views that execute as native Go code without container overhead. This provides approximately 25x performance improvement. While legacy documentation may reference "chaincode," Fabric-X applications use FSC views implemented in Go.
+> **Note:** Unlike Fabric Classic where smart contracts run as "chaincode" in Docker containers, Chaguar uses FSC views that execute as native Go code without container overhead. This provides approximately 25x performance improvement. While legacy documentation may reference "chaincode," Chaguar applications use FSC views implemented in Go.
 
 ### Privacy
 
 Depending on the needs of a network, participants in a Business-to-Business (B2B) network might be extremely sensitive about how much information they share. For other networks, privacy will not be a top concern.
 
-Fabric-X privacy is primarily implemented through FSC application protocols rather than ledger-level channels. Sensitive data can remain off-chain in participant-controlled storage, while the ledger stores anchors, hashes, commitments, or other verification material needed for auditability and consistency. Networks can therefore keep private business data outside the shared ledger while preserving on-chain proof of agreed transaction effects.
+Chaguar privacy is primarily implemented through FSC application protocols rather than ledger-level channels. Sensitive data can remain off-chain in participant-controlled storage, while the ledger stores anchors, hashes, commitments, or other verification material needed for auditability and consistency. Networks can therefore keep private business data outside the shared ledger while preserving on-chain proof of agreed transaction effects.
 
 ### Consensus
 
 Transactions must be written to the ledger in a single consensus-established order, even though they might be between different sets of participants within the network. The order is not based on wall-clock timing; it is the deterministic order agreed by the ordering service. Without this agreed order, committers could apply updates differently and end with inconsistent state. A method for rejecting bad transactions that have been inserted into the ledger in error (or maliciously) must also be put into place.
 
-This is a thoroughly researched area of computer science, and there are many ways to achieve it, each with different trade-offs. Fabric-X has been designed to allow network starters to choose a consensus mechanism that best represents the relationships that exist between participants. As with privacy, there is a spectrum of needs; from networks that are highly structured in their relationships to those that are more peer-to-peer.
+This is a thoroughly researched area of computer science, and there are many ways to achieve it, each with different trade-offs. Chaguar has been designed to allow network starters to choose a consensus mechanism that best represents the relationships that exist between participants. As with privacy, there is a spectrum of needs; from networks that are highly structured in their relationships to those that are more peer-to-peer.
 
 ## Next Steps
 
-Now that you understand blockchain fundamentals and why permissioned blockchains are essential for enterprise use cases, you're ready to explore Fabric-X in more depth. The [Fabric-X Architecture](../architecture/index.md) documentation provides a platform overview. If you're ready to start building, start with [Installation](../getting_started/install.md) and [Run Fabric-X](../getting_started/run-fabric-x.md). For application design, see the [Fabric-X Model](fabric-x-model.md) and [Endorsement Models](endorser.md).
+Now that you understand blockchain fundamentals and why permissioned blockchains are essential for enterprise use cases, you're ready to explore Chaguar in more depth. The [Chaguar Architecture](../architecture/index.md) documentation provides a platform overview. If you're ready to start building, start with [Installation](../getting_started/install.md) and [Run Chaguar](../getting_started/run-chaguar.md). For application design, see the [Chaguar Model](chaguar-model.md) and [Endorsement Models](endorser.md).

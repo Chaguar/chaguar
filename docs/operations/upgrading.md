@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # Upgrade Procedures
 
-This guide covers upgrading Fabric-X components.
+This guide covers upgrading Chaguar components.
 
 ## Pre-Upgrade Checklist
 
@@ -18,12 +18,12 @@ This guide covers upgrading Fabric-X components.
 
 3. **Verify current versions:**
    ```bash
-   # Check fabric-x-orderer version
+   # Check Chaguar orderer version
    ./bin/arma version
    # or from source
    git describe --tags
    
-   # Check fabric-x-committer version
+   # Check Chaguar committer version
    ./bin/committer version
    # or from source
    git describe --tags

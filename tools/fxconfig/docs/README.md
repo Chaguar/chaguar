@@ -2,9 +2,9 @@
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# fxconfig - Fabric-X Namespace Management CLI
+# fxconfig - Chaguar Namespace Management CLI
 
-`fxconfig` is a command-line tool for managing Fabric-X namespaces. It enables creating, updating, and querying namespaces with flexible endorsement policies.
+`fxconfig` is a command-line tool for managing Chaguar namespaces. It enables creating, updating, and querying namespaces with flexible endorsement policies.
 
 ## Quick Start
 
@@ -443,4 +443,4 @@ committing it. Re-create the transaction and submit again.
 
 ## Additional Resources
 
-- [Fabric-X Documentation](https://github.com/hyperledger/fabric-x)
+- [Chaguar Documentation](https://github.com/Chaguar/chaguar)

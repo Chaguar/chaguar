@@ -1,18 +1,18 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# Transaction Flow in Fabric-X
+# Transaction Flow in Chaguar
 
 ## Overview
 
-This document provides a comprehensive walkthrough of the complete transaction lifecycle in Fabric-X, from client submission through final commitment to the ledger.
+This document provides a comprehensive walkthrough of the complete transaction lifecycle in Chaguar, from client submission through final commitment to the ledger.
 
-Fabric-X implements a **three-phase transaction model**. The **Endorsement Phase** handles transaction simulation and signature collection through FSC. The **Ordering Phase** sequences transactions and constructs blocks via the Arma service. Finally, the **Commitment Phase** performs parallel validation and state updates through the Committer pipeline.
+Chaguar implements a **three-phase transaction model**. The **Endorsement Phase** handles transaction simulation and signature collection through FSC. The **Ordering Phase** sequences transactions and constructs blocks via the Arma service. Finally, the **Commitment Phase** performs parallel validation and state updates through the Committer pipeline.
 
 !!! info "Timing Disclaimer"
     Latency numbers in this document are **estimates based on architecture analysis**, not measured performance. Actual performance depends on hardware, network conditions, workload characteristics, and configuration. Use these numbers as rough guidelines for understanding the transaction flow, not as performance guarantees.
 
 ```mermaid
 flowchart TD
-    subgraph phases["FABRIC-X TRANSACTION FLOW"]
+    subgraph phases["CHAGUAR TRANSACTION FLOW"]
         direction LR
         Client["Client App"]
         Endorsement["Endorsement<br/>(FSC)"]
@@ -50,7 +50,7 @@ flowchart TD
 
 ### 1.1 Transaction Proposal
 
-The transaction flow begins when a client application constructs a **transaction proposal**. Fabric-X uses **FSC (Fabric-Smart-Client) views** that run as native Go code.
+The transaction flow begins when a client application constructs a **transaction proposal**. Chaguar uses **FSC (Fabric-Smart-Client) views** that run as native Go code.
 
 The proposal contains three main sections. The **Header** carries routing and identity metadata including the channel ID, namespace ID, transaction ID, timestamp, proposer's X.509 certificate, and a 16-byte nonce for replay protection. The **Payload** holds the actual transaction logic: the function name to invoke (such as "Transfer"), arguments (like account names and amounts), an optional read-set hint for optimization, and any encrypted transient data. Finally, the **Signature** section contains an ECDSA signature computed over the Header and Payload, cryptographically binding the proposer's identity to the transaction request.
 

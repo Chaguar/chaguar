@@ -3,15 +3,15 @@
 
 ## Overview
 
-Fabric-X is a permissioned system, so identities are first-class network objects. Every client, service, administrator, and endorsing participant acts through a cryptographic identity. That identity is used to sign messages, authenticate transport sessions, satisfy policies, and create audit trails.
+Chaguar is a permissioned system, so identities are first-class network objects. Every client, service, administrator, and endorsing participant acts through a cryptographic identity. That identity is used to sign messages, authenticate transport sessions, satisfy policies, and create audit trails.
 
-Fabric-X inherits Fabric-compatible identity concepts through `fabric-x-common`. The primary identity format is an X.509 certificate issued by a trusted Certificate Authority (CA) and validated through a Membership Service Provider (MSP).
+Chaguar inherits Fabric-compatible identity concepts through `Chaguar/common`. The primary identity format is an X.509 certificate issued by a trusted Certificate Authority (CA) and validated through a Membership Service Provider (MSP).
 
 An identity proves control of private key material. It does not, by itself, authorize an action. Authorization comes from policy evaluation after the identity has been validated.
 
 ## Actors and Identities
 
-Fabric-X identities are used by many actors:
+Chaguar identities are used by many actors:
 
 | Actor | Identity use |
 | --- | --- |
@@ -29,7 +29,7 @@ A valid certificate says who produced a signature according to MSP trust rules. 
 
 An X.509 certificate binds a public key to subject information and an issuer. The certificate chain links that identity to a root or intermediate CA trusted by an MSP.
 
-Common certificate uses in Fabric-X include:
+Common certificate uses in Chaguar include:
 
 - transaction submission signatures;
 - endorsement signatures;
@@ -43,7 +43,7 @@ Production deployments should separate concerns where appropriate. TLS certifica
 
 ## Certificate Authorities
 
-Certificate Authorities issue certificates for organizations, users, and services. Fabric-X deployments can use Fabric CA or an enterprise PKI as long as issued certificates are compatible with MSP configuration.
+Certificate Authorities issue certificates for organizations, users, and services. Chaguar deployments can use Fabric CA or an enterprise PKI as long as issued certificates are compatible with MSP configuration.
 
 Certificates must chain to trusted roots or intermediates and carry the organizational information and organizational units expected by policy. Certificate lifecycle management is an operational responsibility: organizations need enrollment, renewal, revocation, emergency replacement, and audit procedures.
 
@@ -77,7 +77,7 @@ Policies use these roles to express authorization. A namespace policy can requir
 
 Identity validation starts with MSP trust rules. The MSP checks certificate chains, trusted roots and intermediates, role mappings, expiration, and revocation data. If the identity is valid, policy evaluation can decide whether signatures from that identity satisfy required principals.
 
-Fabric-X namespace-policy verification can also use cached identity references to avoid carrying full certificates in every endorsement. The verifier resolves cached references to identities and then performs normal signature and policy checks.
+Chaguar namespace-policy verification can also use cached identity references to avoid carrying full certificates in every endorsement. The verifier resolves cached references to identities and then performs normal signature and policy checks.
 
 ## Revocation and Expiry
 
@@ -90,4 +90,4 @@ Revocation matters for long-running networks. If a key is compromised or an orga
 - [Membership Service Provider](msp.md)
 - [Endorsement and Other Policies](policies/policies.md)
 - [Verifier](../committer/docs/verification-service.md)
-- `fabric-x-common/msp`
+- `Chaguar/common/msp`

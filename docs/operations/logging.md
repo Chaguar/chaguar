@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # Logging Guide
 
-This document provides guidance for logging in Fabric-X networks.
+This document provides guidance for logging in Chaguar networks.
 
 ## Log Configuration
 

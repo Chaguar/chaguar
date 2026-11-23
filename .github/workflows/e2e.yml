@@ -6,7 +6,7 @@
 # E2E Integration Test workflow.
 #
 # Uses integration/test/build-e2e.sh to build all component images
-# (orderer, committer, loadgen, explorer) and fabric-x tools, then
+# (orderer, committer, loadgen, explorer) and Chaguar tools, then
 # runs the full E2E pipeline test.
 # All refs default to values in integration/test/refs.conf when not provided.
 #
@@ -16,20 +16,20 @@ name: E2E Integration Test
 on:
   workflow_dispatch:
     inputs:
-      fabric-x-ref:
-        description: "fabric-x ref. Empty=use refs.conf default"
+      chaguar-ref:
+        description: "Chaguar/chaguar ref. Empty=use refs.conf default"
         required: false
         default: ""
       orderer-ref:
-        description: "fabric-x-orderer ref. Empty=use refs.conf default"
+        description: "Chaguar/orderer ref. Empty=use refs.conf default"
         required: false
         default: ""
       committer-ref:
-        description: "fabric-x-committer ref. Empty=use refs.conf default"
+        description: "Chaguar/committer ref. Empty=use refs.conf default"
         required: false
         default: ""
       explorer-ref:
-        description: "fabric-x-block-explorer ref. Empty=use refs.conf default"
+        description: "Chaguar/block-explorer ref. Empty=use refs.conf default"
         required: false
         default: ""
 
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout fabric-x
+      - name: Checkout chaguar
         uses: actions/checkout@v4
 
       - name: Setup Go
@@ -49,7 +49,7 @@ jobs:
 
       # ---------------------------------------------------------------
       # Build all component images (orderer, committer, loadgen, explorer)
-      # and fabric-x tools (cryptogen, configtxgen, fxconfig).
+      # and Chaguar tools (cryptogen, configtxgen, fxconfig).
       # build-e2e.sh clones each repo at the configured ref, builds the
       # image locally, and writes resolved image names to GITHUB_OUTPUT
       # so downstream steps can reference them without parsing stdout.
@@ -57,14 +57,14 @@ jobs:
       - name: Build E2E images and tools
         id: images
         env:
-          INPUT_FABRIC_X_REF: ${{ inputs.fabric-x-ref }}
+          INPUT_CHAGUAR_REF: ${{ inputs.chaguar-ref }}
           INPUT_ORDERER_REF: ${{ inputs.orderer-ref }}
           INPUT_COMMITTER_REF: ${{ inputs.committer-ref }}
           INPUT_EXPLORER_REF: ${{ inputs.explorer-ref }}
         run: |
           args=()
-          if [ -n "${INPUT_FABRIC_X_REF}" ]; then
-            args+=("--fabric-x-ref=${INPUT_FABRIC_X_REF}")
+          if [ -n "${INPUT_CHAGUAR_REF}" ]; then
+            args+=("--chaguar-ref=${INPUT_CHAGUAR_REF}")
           fi
           if [ -n "${INPUT_ORDERER_REF}" ]; then
             args+=("--orderer-ref=${INPUT_ORDERER_REF}")
@@ -87,7 +87,7 @@ jobs:
           COMMITTER_IMAGE: ${{ steps.images.outputs.committer_image }}
           LOADGEN_IMAGE: ${{ steps.images.outputs.loadgen_image }}
           EXPLORER_IMAGE: ${{ steps.images.outputs.explorer_image }}
-          FABRIC_X_BIN: ${{ github.workspace }}/integration/test/.build/fabric-x/bin
+          CHAGUAR_BIN: ${{ github.workspace }}/integration/test/.build/chaguar/bin
           SKIP_CLEANUP_PROMPT: "1"
         run: ./integration/test/run-e2e.sh
 

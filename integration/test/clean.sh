@@ -28,8 +28,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Remove temp directories (may be overridden via env vars).
 # Resolve symlinks (e.g., /tmp -> /private/tmp on macOS) so we clean the
 # actual directories, matching how run-e2e.sh resolves them via pwd -P.
-ARTIFACTS_DIR="${ARTIFACTS_DIR:-/tmp/fabric-x-test/artifacts}"
-STORAGE_DIR="${STORAGE_DIR:-/tmp/fabric-x-test/arma-storage}"
+ARTIFACTS_DIR="${ARTIFACTS_DIR:-/tmp/chaguar-test/artifacts}"
+STORAGE_DIR="${STORAGE_DIR:-/tmp/chaguar-test/arma-storage}"
 if [ -d "${ARTIFACTS_DIR}" ]; then
   ARTIFACTS_DIR="$(cd "${ARTIFACTS_DIR}" && pwd -P)"
 fi

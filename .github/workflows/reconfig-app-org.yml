@@ -31,16 +31,16 @@ on:
     - cron: "0 3 * * *" # 03:00 UTC daily
   workflow_dispatch:
     inputs:
-      fabric-x-ref:
-        description: "fabric-x ref. Empty=use refs.conf default"
+      chaguar-ref:
+        description: "Chaguar/chaguar ref. Empty=use refs.conf default"
         required: false
         default: ""
       orderer-ref:
-        description: "fabric-x-orderer ref. Empty=use refs.conf default"
+        description: "Chaguar/orderer ref. Empty=use refs.conf default"
         required: false
         default: ""
       committer-ref:
-        description: "fabric-x-committer ref. Empty=use refs.conf default"
+        description: "Chaguar/committer ref. Empty=use refs.conf default"
         required: false
         default: ""
 
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout fabric-x
+      - name: Checkout chaguar
         uses: actions/checkout@v4
 
       - name: Setup Go
@@ -69,7 +69,7 @@ jobs:
           go-version-file: go.mod
 
       # ---------------------------------------------------------------
-      # Build orderer and committer images plus fabric-x tools.
+      # Build orderer and committer images plus Chaguar tools.
       # build-e2e.sh writes resolved image names to GITHUB_OUTPUT so
       # the test step can reference them without parsing stdout.
       # Explorer and loadgen are not needed for this test.
@@ -77,15 +77,15 @@ jobs:
       - name: Build images and tools
         id: images
         env:
-          INPUT_FABRIC_X_REF: ${{ inputs.fabric-x-ref }}
+          INPUT_CHAGUAR_REF: ${{ inputs.chaguar-ref }}
           INPUT_ORDERER_REF: ${{ inputs.orderer-ref }}
           INPUT_COMMITTER_REF: ${{ inputs.committer-ref }}
         run: |
           args=()
-          if [ -n "${INPUT_FABRIC_X_REF}" ]; then
-            args+=("--fabric-x-ref=${INPUT_FABRIC_X_REF}")
+          if [ -n "${INPUT_CHAGUAR_REF}" ]; then
+            args+=("--chaguar-ref=${INPUT_CHAGUAR_REF}")
           elif [ "${GITHUB_EVENT_NAME}" != "workflow_dispatch" ]; then
-             args+=("--fabric-x-local-path=${GITHUB_WORKSPACE}")
+             args+=("--chaguar-local-path=${GITHUB_WORKSPACE}")
           fi
           if [ -n "${INPUT_ORDERER_REF}" ]; then
             args+=("--orderer-ref=${INPUT_ORDERER_REF}")

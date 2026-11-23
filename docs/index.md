@@ -492,7 +492,7 @@ enterprise throughput requirements.
 ## Acknowledgement
 
 The preceding is derived from
-["Chaguar: Scaling Hyperledger Fabric for Asset Exchange"](https://eprint.iacr.org/2023/1717):
+["Fabric-X: Scaling Hyperledger Fabric for Asset Exchange"](https://eprint.iacr.org/2023/1717) (Chaguar was published as Fabric-X):
 
 - Elli Androulaki, IBM Research - Zurich
 - Marcus Brandenburger, IBM Research - Zurich

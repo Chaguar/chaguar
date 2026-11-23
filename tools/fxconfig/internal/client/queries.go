@@ -18,7 +18,7 @@ import (
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/config"
 )
 
-// QueryClient provides a gRPC client for querying namespace policies from the Fabric-X committer query service.
+// QueryClient provides a gRPC client for querying namespace policies from the Chaguar committer query service.
 type QueryClient struct {
 	cfg    config.QueriesConfig
 	client committerpb.QueryServiceClient

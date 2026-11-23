@@ -133,7 +133,7 @@ type NotificationsConfig struct {
 	WaitingTimeout        time.Duration `mapstructure:"waitingTimeout" yaml:"waitingTimeout,omitempty" desc:"Time to wait for notification processing" default:"30s"`
 }
 
-// EndpointServiceConfig defines connection settings for a Fabric-X service.
+// EndpointServiceConfig defines connection settings for a Chaguar service.
 // Each service (orderer, queries, notifications) can have its own configuration.
 //
 //nolint:revive,lll

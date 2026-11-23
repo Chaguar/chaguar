@@ -21,10 +21,10 @@ import (
 func NewNsRootCommand(ctx *CLIContext) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "namespace",
-		Short: "Manage Fabric-X namespaces",
+		Short: "Manage Chaguar namespaces",
 		Long: `Manage namespace lifecycle operations.
 
-Namespaces in Fabric-X define isolated execution environments with their own
+Namespaces in Chaguar define isolated execution environments with their own
 endorsement policies. Each namespace has:
   • Unique identifier (name)
   • Version number (incremented on updates)

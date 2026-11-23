@@ -6,13 +6,13 @@
 
 # fxconfig
 
-The `fxconfig` command manages Fabric-X configuration transactions, including namespace operations and transaction endorsement/submission workflows.
+The `fxconfig` command manages Chaguar configuration transactions, including namespace operations and transaction endorsement/submission workflows.
 
 ## fxconfig
 ```
-fxconfig is a command-line tool for managing Fabric-X namespaces and transactions.
+fxconfig is a command-line tool for managing Chaguar namespaces and transactions.
 
-Namespaces in Fabric-X define isolated execution environments with their own
+Namespaces in Chaguar define isolated execution environments with their own
 endorsement policies. This tool allows you to:
   • Create and update namespaces with custom endorsement policies
   • Query installed namespaces and their configurations
@@ -30,7 +30,7 @@ Available Commands:
   completion  Generate the autocompletion script for the specified shell
   help        Help about any command
   info        Display effective configuration
-  namespace   Manage Fabric-X namespaces
+  namespace   Manage Chaguar namespaces
   tx          Perform transaction operations
   version     Display version information
 
@@ -81,7 +81,7 @@ Global Flags:
 ```
 Manage namespace lifecycle operations.
 
-Namespaces in Fabric-X define isolated execution environments with their own
+Namespaces in Chaguar define isolated execution environments with their own
 endorsement policies. Each namespace has:
   • Unique identifier (name)
   • Version number (incremented on updates)
@@ -360,7 +360,7 @@ Global Flags:
 
 ## fxconfig tx submit
 ```
-Submit an endorsed transaction to the Fabric-X ordering service.
+Submit an endorsed transaction to the Chaguar ordering service.
 
 The transaction must have sufficient endorsements to satisfy its endorsement
 policy. Use 'fxconfig tx merge' to combine endorsements from multiple

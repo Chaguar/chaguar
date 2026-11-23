@@ -6,7 +6,7 @@
 
 # configtxgen
 
-The `configtxgen` command generates Fabric-X configuration artifacts such as genesis blocks and channel configuration transactions.
+The `configtxgen` command generates Chaguar configuration artifacts such as genesis blocks and channel configuration transactions.
 
 ## configtxgen
 ```
@@ -39,7 +39,7 @@ Usage of configtxgen:
 ## Related commands
 
 - [`cryptogen`](cryptogen.md) generates sample cryptographic material.
-- [`fxconfig`](fxconfig.md) creates, endorses, merges, and submits Fabric-X configuration transactions.
+- [`fxconfig`](fxconfig.md) creates, endorses, merges, and submits Chaguar configuration transactions.
 
 ---
 

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-// Package main provides the fxconfig CLI tool for managing Fabric-X namespaces.
+// Package main provides the fxconfig CLI tool for managing Chaguar namespaces.
 // It supports creating, updating, and listing namespaces with flexible policy configurations.
 package main
 

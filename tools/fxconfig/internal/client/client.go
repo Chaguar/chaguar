@@ -4,7 +4,7 @@ Copyright IBM Corp. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-// Package client provides gRPC client implementations for Fabric-X services.
+// Package client provides gRPC client implementations for Chaguar services.
 // It includes clients for orderer, query, and notification services with TLS support.
 package client
 

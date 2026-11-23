@@ -22,7 +22,7 @@ func newTxSubmitCommand(ctx *CLIContext) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "submit [file]",
 		Short: "Submit transaction to ordering service",
-		Long: `Submit an endorsed transaction to the Fabric-X ordering service.
+		Long: `Submit an endorsed transaction to the Chaguar ordering service.
 
 The transaction must have sufficient endorsements to satisfy its endorsement
 policy. Use 'fxconfig tx merge' to combine endorsements from multiple

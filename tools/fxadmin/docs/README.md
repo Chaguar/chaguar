@@ -290,6 +290,9 @@ fxadmin modify party node   --party <N> --role <role> [--shard <S>] \
 # A party's CA / TLS-CA certificate lists
 fxadmin modify party ca  add|remove|set  --party <N> \
     [--sign-cert <pem>…] [--tls-cert <pem>…]                         --block <next.pb>
+
+# The CA the node OUs of a party's org MSP pin
+fxadmin modify party ca  node-ous  --party <N> --sign-cert <pem>     --block <next.pb>
 ```
 
 **Common flags on every command**
@@ -560,9 +563,9 @@ before it writes the block ([Chaguar/common#233](https://github.com/Chaguar/comm
 
 **Checked by the orderer on submission**
 
-fxadmin does not check these rules before it writes the block, so a mistake is reported only when
-the transaction is submitted. Checking them earlier is tracked in
-[Chaguar/common#233](https://github.com/Chaguar/common/issues/233).
+The orderer checks these rules when the config update is submitted. fxadmin doesn't run them yet
+before it writes the block, so a mistake is reported only on submission. Running them in fxadmin is
+tracked in [Chaguar/common#233](https://github.com/Chaguar/common/issues/233).
 
 - `PartyID` must be the block's `MaxPartyID + 1`.
 - The party's `CACerts` and `TLSCACerts` must be valid CA certificates. Every node's
@@ -600,6 +603,54 @@ fxadmin modify party remove 5 --block next.pb
 | Argument | Required | Description |
 |----------| :------: |-------------|
 | `<party-id>` | yes | Numeric `PartyID` to remove |
+
+**Flags**
+
+| Flag | Required | Description |
+|------|:--------:|-------------|
+| `--block` | yes | Config block to edit in place |
+
+**What changes in the block**
+
+The party's organization is the orderer organization whose MSP `name` is the `msp_id` of the
+party's consenter in the `Orderers` value. This is how the orderer links a party to its
+organization.
+
+| Element | Change |
+|---------|--------|
+| Shared config `PartiesConfig` | The party's entry is removed. |
+| Shared config `MaxPartyID` | Unchanged, so a removed `PartyID` is never used again. The next party you add still gets `MaxPartyID + 1`. |
+| Consenter mapping (the `Orderers` value) | The party's consenter is removed. |
+| The party's orderer organization (`channel_group.groups.Orderer.groups.<org>`) | Removed, unless the consenter of another party has the same `msp_id`. In that case the organization is kept and only the party's addresses are removed from its `Endpoints`. |
+| `Endpoints` of every remaining orderer organization | Every address with the party's `id=` is removed. Addresses without an `id=` are kept. |
+| `BlockValidation` policy | Recomputed as a BFT quorum over the signing certificates of the remaining consenters. Its version and `mod_policy` are kept. |
+
+**When the command fails**
+
+The command leaves the block unchanged if:
+
+- The shared config has no party with that `PartyID`.
+- The party is the only party in the shared config. Removing it would leave no ordering service.
+- The consenter mapping has no consenter for the party.
+- No orderer organization, or more than one, has the MSP `name` of the party's consenter.
+- An address in the `Endpoints` value of an orderer organization cannot be parsed.
+- The edited config is not a valid channel config.
+
+**Checked by the orderer on submission**
+
+The orderer checks these rules when the config update is submitted. fxadmin doesn't run them yet
+before it writes the block, so a mistake is reported only on submission. Running them in fxadmin is
+tracked in [Chaguar/common#233](https://github.com/Chaguar/common/issues/233).
+
+- A config update can change only one party. Don't remove a party and also add, remove or change
+  another one in the same `next.pb`.
+- Every orderer organization that is kept must still have both a `broadcast` and a `deliver`
+  address.
+
+**Not checked yet**
+
+Neither fxadmin nor the orderer checks yet that the remaining parties can still reach a BFT
+quorum. Make sure the ordering service stays live without the removed party before you submit.
 
 ---
 
@@ -653,10 +704,10 @@ A rejected host leaves the block unchanged.
 
 ___
 
-**modify party ca add | remove | set**
+**modify party ca add | remove | set | node-ous**
 
 Change a party's sign-CA (`--sign-cert`) and/or TLS-CA (`--tls-cert`) certificate
-**lists**.
+**lists**, or the CA that the node OUs of the party's org MSP pin.
 
 ```bash
 # add a new CA alongside the current ones
@@ -667,27 +718,196 @@ fxadmin modify party ca remove --party 1 --tls-cert old-tlsca.crt --block next.p
 
 # replace both lists
 fxadmin modify party ca set --party 1 --sign-cert new-ca.crt --tls-cert new-tlsca.crt --block next.pb
+
+# point the node OUs at a CA of the party's CA list
+fxadmin modify party ca node-ous --party 1 --sign-cert new-ca.crt --block next.pb
 ```
 
 **Subcommands**
 
-| Subcommand | Effect on the named list(s) |
-|------------|-----------------------------|
-| `add`      | Append the given cert(s) (idempotent; keeps existing, so old and new coexist). |
-| `remove`   | Drop the given cert(s) (errors if absent; refuses to empty a list). |
-| `set`      | Replace the list with exactly the given cert(s). |
+| Subcommand | Effect |
+|------------|--------|
+| `add`      | Append the given cert(s) to the named list(s). A cert that is already in the list is skipped with a message, so old and new CAs coexist. |
+| `remove`   | Drop the given cert(s) from the named list(s). Fails if a cert is not in the list, if the list would be left empty, or if it would drop the CA the node OUs pin. |
+| `set`      | Replace the whole named list(s). Whatever CA(s) a list holds, one or more, it then holds exactly the given cert(s), one or more, in the order given. Fails if it would drop the CA the node OUs pin. |
+| `node-ous` | Point the org's node OUs at the given CA, which must already be in the party's CA list. The lists don't change. This is the only command that moves the node OUs. |
 
 **Flags**
 
 | Flag | Required | Description |
 |------|:--------:|-------------|
 | `--party` | yes | Party whose CA list(s) change |
-| `--sign-cert` | ≥1 of the two | PEM path(s) for the signing-CA list (repeatable) |
-| `--tls-cert` | ≥1 of the two | PEM path(s) for the TLS-CA list (repeatable) |
+| `--sign-cert` | ≥1 of the two | PEM path(s) for the signing-CA list (repeatable). `node-ous`: required, exactly one |
+| `--tls-cert` | ≥1 of the two | PEM path(s) for the TLS-CA list (repeatable). Not accepted by `node-ous` |
 | `--block` | yes | Config block to edit in place |
 
 Pass only `--sign-cert` to change the CA list, only `--tls-cert` for the TLS-CA
-list, or both to change both. CA changes are applied to both the party and its orderer org MSP.
+list, or both to change both. Each file must hold exactly one PEM-encoded X.509 **CA** certificate,
+and the same certificate can't be given twice. A file of several certificates, such as a CA chain
+or bundle, is rejected: give each CA in a file of its own.
+
+**What changes in the block**
+
+Each list is stored in two places, and the command changes both:
+
+| List | Party (`channel_group.groups.Orderer.values.ConsensusType.value.metadata.PartiesConfig[]`) | Orderer org MSP (`channel_group.groups.Orderer.groups.<org>.values.MSP.value.config`) |
+|------|------|------|
+| `--sign-cert` | `CACerts` | `root_certs` |
+| `--tls-cert` | `TLSCACerts` | `tls_root_certs` |
+
+Intermediate CAs aren't supported yet ([Chaguar/orderer#619](https://github.com/Chaguar/orderer/issues/619)):
+a certificate always goes to `root_certs` / `tls_root_certs`, and `intermediate_certs` /
+`tls_intermediate_certs` are left unchanged.
+
+The party's org is the orderer org whose MSP `name` is the `msp_id` of the party's consenter.
+An org can run several parties, which all trust the org's MSP, so the change is applied to **every
+party of the org**, whichever of them `--party` names.
+
+**Node OUs.** Each node OU of the org MSP (`fabric_node_ous`: client, peer, admin and orderer)
+pins one CA, which must be one of the MSP's `root_certs` or `intermediate_certs`. Every identity of
+the org, including the party's nodes, must be issued by the CA its node OU pins. So run `node-ous`
+in the same config update as `modify party node --sign-cert` for every node of the org's parties
+(see the rotation below).
+
+**Node OUs that are not enabled.** An MSP can define node OUs with `enable: false`. Then they don't
+decide the roles of identities, but the MSP still requires the CA each node OU pins to be one of its
+`root_certs` or `intermediate_certs`. So before you remove the CA they pin (with `ca remove` or
+`ca set`), you still move the pins with `fxadmin modify party ca node-ous`. It moves them as usual,
+and warns that the node OUs are not enabled. `ca add`, `ca remove` and `ca set` never move the pins.
+
+Each command changes one thing. `add`, `remove` and `set` change only the CA lists, and
+`node-ous` changes only the node OUs: it points every node OU that pins a CA at the given CA. So
+`remove` and `set` never move the node OUs. If either would drop the CA they pin, it fails before
+it writes the block, and tells you to move them first:
+
+```
+the node OUs pin the CA "CN=org1-CA,…", which is not in the CA list; first point them at a CA of
+the list, with `fxadmin modify party ca node-ous`
+```
+
+**Rotating a party's CAs**
+
+Replacing a party's CAs takes **three config updates**, as in the orderer's
+`TestChangePartyCACertificates` scenario and its
+[CA rotation guide](https://github.com/Chaguar/orderer/blob/main/docs/reconfig/reconfig.md#55-rotate-a-partys-ca-certificates).
+
+**The rotation assumes an org MSP with node OUs.** Then the admin role comes from the admin node OU,
+and the MSP's `admins` list is empty. This is the default for orgs generated with node OUs.
+
+**MSPs without node OUs are not supported.** An MSP without node OUs (admincerts mode) lists its
+admin certificates in `admins` instead, and has no node OU pins to move. To rotate the CAs of such
+an org, update 2 should replace the `admins` certificates with those of the new admin identities,
+instead of running `node-ous`. The `modify` commands don't change `admins`, and won't: CA rotation
+with the `modify` commands is supported only for MSPs with node OUs. The same holds for an MSP with
+node OUs that also lists admin certificates in `admins`: `ca set` in update 3 fails while they are
+issued by the old CA.
+
+Each update removes trust in the old CA only once nothing in the block depends on it:
+
+| Update | `root_certs` / `tls_root_certs` | Party's node certificates | Node OUs pin | Party's admin endorses with |
+|--------|------|------|------|------|
+| 1. Trust the new CAs | old, new | old | old | old identity |
+| 2. Move the nodes and the node OUs to the new CA | old, new | **new** | **new** | old identity |
+| 3. Remove the old CAs | **new** | new | new | **new** identity |
+
+The node certificates and the node OUs must move **in the same update**, update 2. A node
+certificate that isn't issued by the CA its node OU pins is invalid in the org's MSP, so moving
+only one of them is rejected on submission.
+
+**It is the admin's responsibility to follow this order:** before `set` removes a CA, no certificate
+of the party may still be issued by it.
+
+**Before update 1**, issue from the new CAs a TLS and a signing certificate for every node of the
+party (the router, the consenter, the assembler, and the batcher of every shard), and new admin
+and client identities.
+
+**Recipe: the full CA rotation**
+
+The commands below rotate the CAs of party 1 of `org1`. `config0.pb` is the latest config block.
+`admin_orgN.yaml` is the admin configuration of `orgN`, and `admin_org1_new.yaml` is `org1`'s
+admin configuration with its identity from the new CA. Each update is endorsed by a majority of the
+orderer orgs, including `org1`.
+
+```bash
+# ---- Update 1: trust the new CAs alongside the old ones.
+cp config0.pb next.pb
+fxadmin modify party ca add --party 1 --sign-cert new-ca.crt --tls-cert new-tlsca.crt --block next.pb
+fxadmin compute-update --pb config0.pb next.pb --output update1.pb
+fxadmin tx endorse update1.pb --config admin_org1.yaml --output update1_org1.pb      # org1: old identity
+fxadmin tx endorse update1.pb --config admin_org2.yaml --output update1_org2.pb
+fxadmin tx endorse update1.pb --config admin_org3.yaml --output update1_org3.pb
+fxadmin tx merge update1_org1.pb update1_org2.pb update1_org3.pb --output update1_endorsed.pb
+fxadmin tx send update1_endorsed.pb --config admin_org2.yaml --current-block config0.pb --output update1_tx.pb
+fxadmin follow --config admin_org2.yaml --current-block config0.pb --timeout 60s --output config1.pb
+
+# ---- Update 2: move every node of party 1, and the node OUs, to the new CA.
+cp config1.pb next.pb
+fxadmin modify party node --party 1 --role router    --tls-cert router-tls.crt    --sign-cert router-sign.crt    --block next.pb
+fxadmin modify party node --party 1 --role consenter --tls-cert consenter-tls.crt --sign-cert consenter-sign.crt --block next.pb
+fxadmin modify party node --party 1 --role assembler --tls-cert assembler-tls.crt --sign-cert assembler-sign.crt --block next.pb
+fxadmin modify party node --party 1 --role batcher --shard 1 --tls-cert batcher1-tls.crt --sign-cert batcher1-sign.crt --block next.pb
+#   … a batcher command for every shard of party 1 …
+fxadmin modify party ca node-ous --party 1 --sign-cert new-ca.crt --block next.pb
+fxadmin compute-update --pb config1.pb next.pb --output update2.pb
+fxadmin tx endorse update2.pb --config admin_org1.yaml --output update2_org1.pb      # org1: old identity
+fxadmin tx endorse update2.pb --config admin_org2.yaml --output update2_org2.pb
+fxadmin tx endorse update2.pb --config admin_org3.yaml --output update2_org3.pb
+fxadmin tx merge update2_org1.pb update2_org2.pb update2_org3.pb --output update2_endorsed.pb
+fxadmin tx send update2_endorsed.pb --config admin_org2.yaml --current-block config1.pb --output update2_tx.pb
+fxadmin follow --config admin_org2.yaml --current-block config1.pb --timeout 60s --output config2.pb
+#   Now restart party 1's nodes with their new certificates and keys, and switch party 1's admin
+#   and clients to their identities from the new CA.
+
+# ---- Update 3: remove the old CAs.
+cp config2.pb next.pb
+#   First, replace org1's MSP known_certs: the certificates of the old CA by those of the new CA.
+#   List the batcher of every shard of party 1 in both commands, not only batcher1
+#   (old-batcher2-sign.crt and batcher2-sign.crt, …): an old-CA certificate left in known_certs
+#   makes the `ca set` below fail.
+fxadmin modify party known-certs remove --party 1 \
+  --cert old-admin-sign.crt --cert old-client-sign.crt --cert old-router-sign.crt \
+  --cert old-consenter-sign.crt --cert old-assembler-sign.crt --cert old-batcher1-sign.crt --block next.pb
+fxadmin modify party known-certs add --party 1 \
+  --cert admin-sign.crt --cert client-sign.crt --cert router-sign.crt \
+  --cert consenter-sign.crt --cert assembler-sign.crt --cert batcher1-sign.crt --block next.pb
+fxadmin modify party ca set --party 1 --sign-cert new-ca.crt --tls-cert new-tlsca.crt --block next.pb
+fxadmin compute-update --pb config2.pb next.pb --output update3.pb
+fxadmin tx endorse update3.pb --config admin_org1_new.yaml --output update3_org1.pb  # org1: new identity
+fxadmin tx endorse update3.pb --config admin_org2.yaml --output update3_org2.pb
+fxadmin tx endorse update3.pb --config admin_org3.yaml --output update3_org3.pb
+fxadmin tx merge update3_org1.pb update3_org2.pb update3_org3.pb --output update3_endorsed.pb
+fxadmin tx send update3_endorsed.pb --config admin_org2.yaml --current-block config2.pb --output update3_tx.pb
+fxadmin follow --config admin_org2.yaml --current-block config2.pb --timeout 60s --output config3.pb
+```
+
+**When the command fails**
+
+The command leaves the block unchanged if:
+
+- **Every subcommand:**
+  - a certificate file can't be read, isn't a PEM-encoded X.509 CA certificate, holds more than
+    one PEM block, or is given twice;
+  - the shared config has no party with that `PartyID`, or the consenter mapping has no consenter
+    for it;
+  - no orderer org, or more than one, has the MSP `name` of the party's consenter;
+  - the edited config is not a valid channel config.
+- **`remove`:**
+  - a certificate is not in the list of every party of the org;
+  - a list would be left empty;
+  - the CA list would no longer hold the CA the node OUs pin. Run `node-ous` first;
+  - the org MSP still has an admin certificate (`admins`) or a known certificate (`known_certs`)
+    issued by a CA it removes.
+- **`set`:**
+  - the CA list would no longer hold the CA the node OUs pin. Run `node-ous` first;
+  - the org MSP still has an admin certificate (`admins`) or a known certificate (`known_certs`)
+    issued by a CA it removes.
+- **`node-ous`:**
+  - not exactly one `--sign-cert` is given, or a `--tls-cert` is given;
+  - the CA is not in the CA list of every party of the org, or not in the org MSP's `root_certs`
+    or `intermediate_certs`;
+  - the org MSP has no node OUs that pin a CA.
+
+`add` fails only in the cases of every subcommand.
 
 ---
 

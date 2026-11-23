@@ -63,7 +63,7 @@ jobs:
            echo "IMAGE_PREFIX=${{ secrets.DOCKERHUB_USERNAME }}" >> $GITHUB_ENV
           fi
 
-      - name: Build and push the fabric-x-tools image
+      - name: Build and push the chaguar-tools image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -75,7 +75,7 @@ jobs:
             CREATED=${{ env.CREATED }}
             REVISION=${{ env.REVISION }}
           tags: |
-            docker.io/${{ env.IMAGE_PREFIX }}/fabric-x-tools:${{ env.VERSION }}
-            docker.io/${{ env.IMAGE_PREFIX }}/fabric-x-tools:latest
-            ghcr.io/${{ env.IMAGE_PREFIX }}/fabric-x-tools:${{ env.VERSION }}
-            ghcr.io/${{ env.IMAGE_PREFIX }}/fabric-x-tools:latest
+            docker.io/${{ env.IMAGE_PREFIX }}/chaguar-tools:${{ env.VERSION }}
+            docker.io/${{ env.IMAGE_PREFIX }}/chaguar-tools:latest
+            ghcr.io/${{ env.IMAGE_PREFIX }}/chaguar-tools:${{ env.VERSION }}
+            ghcr.io/${{ env.IMAGE_PREFIX }}/chaguar-tools:latest

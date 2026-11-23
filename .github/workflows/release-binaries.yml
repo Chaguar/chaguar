@@ -77,8 +77,8 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: fabric-x-tools-${{ matrix.os }}-${{ matrix.arch }}
-          path: release/${{ matrix.os }}-${{ matrix.arch }}/fabric-x-tools-*.tar.gz
+          name: chaguar-tools-${{ matrix.os }}-${{ matrix.arch }}
+          path: release/${{ matrix.os }}-${{ matrix.arch }}/chaguar-tools-*.tar.gz
           if-no-files-found: error
 
   release:

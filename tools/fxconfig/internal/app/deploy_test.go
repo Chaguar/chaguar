@@ -209,7 +209,8 @@ func TestDeployNamespace_EndorseAndSubmit(t *testing.T) {
 
 	out, status, err := a.DeployNamespace(t.Context(), input)
 	require.NoError(t, err)
-	require.Nil(t, out)
+	require.NotNil(t, out)
+	require.NotEmpty(t, out.TxID)
 	require.Equal(t, UnknownStatus, status)
 }
 
@@ -250,7 +251,8 @@ func TestDeployNamespace_EndorseAndSubmitWithWait(t *testing.T) {
 
 	out, status, err := a.DeployNamespace(t.Context(), input)
 	require.NoError(t, err)
-	require.Nil(t, out)
+	require.NotNil(t, out)
+	require.NotEmpty(t, out.TxID)
 	require.Equal(t, expectedStatus, status)
 }
 

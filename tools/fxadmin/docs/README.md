@@ -270,14 +270,22 @@ fxadmin compute-update --pb current.pb next.pb --output config_update.pb
 `modify` edits the block on disk and never contacts the network. 
 Keep `current.pb` untouched for the `compute-update --pb` step in #4.
 
+**Application orgs and orderer orgs are different orgs.** fxadmin assumes that each org is either
+an application org (in the `Application` group) or an orderer org (in the `Orderer` group), with
+its own MSP. An org that is in both groups is not supported. A change to its MSP is rejected,
+because the channel config requires both copies of the MSP to be identical
+(`Attempted to define two different versions of MSP`).
+
 **Commands**
 
 ```bash
 # Application
 fxadmin modify app add                --org=<org.yaml>            --block <next.pb>
 fxadmin modify app remove             <org>                       --block <next.pb>
-fxadmin modify app known-certs add    --org <org> --cert <pem>…   --block <next.pb>
-fxadmin modify app known-certs remove --org <org> --cert <pem>…   --block <next.pb>
+fxadmin modify app known-certs  add|remove|set  --org <org> --cert <pem>…   --block <next.pb>
+
+# Orderer organizations
+fxadmin modify orderer known-certs  add|remove|set  --org <org> --cert <pem>…   --block <next.pb>
 
 # Orderer (ARMA parties)
 fxadmin modify party add              --party=<party.yaml>        --block <next.pb>
@@ -356,25 +364,56 @@ fxadmin modify app remove peer2 --block next.pb
 
 ---
 
-**modify app known-certs add / remove**
+**modify app | orderer known-certs add | remove | set**
 
-Add or remove entries in an application org's MSP `known_certs` list.
+Change the `known_certs` list of an org's MSP: of an application org with `app`, or of an orderer
+org with `orderer`. A client can sign with the ID of a known certificate instead of sending the
+certificate. The MSP resolves that ID only through its known certificates.
 
 ```bash
-fxadmin modify app known-certs add    --org peer1 --cert known1.pem --block next.pb
-fxadmin modify app known-certs remove --org peer1 --cert known1.pem --block next.pb
+fxadmin modify app known-certs add        --org peer1 --cert known1.pem --block next.pb
+fxadmin modify app known-certs remove     --org peer1 --cert known1.pem --block next.pb
+fxadmin modify orderer known-certs set    --org org1  --cert admin.pem --cert client.pem --block next.pb
 ```
+
+**Subcommands**
+
+| Subcommand | Effect on the org's `known_certs` |
+|------------|-----------------------------------|
+| `add`      | Append the given cert(s). A cert that is already in the list is skipped with a message. |
+| `remove`   | Drop the given cert(s). Fails if a cert is not in the list. The list may be left empty. |
+| `set`      | Replace the whole list with exactly the given cert(s), in the order given. |
 
 **Flags**
 
-| Flag | Required | Description                                       |
-|------|:--------:|---------------------------------------------------|
-| `--org` | yes | Application organization whose known-certs change |
-| `--cert` | yes (≥1) | PEM path to add / remove             |
-| `--block` | yes | Config block to edit in place                     |
+| Flag | Required | Description |
+|------|:--------:|-------------|
+| `--org` | yes | The org's name in its group (`Application` for `app`, `Orderer` for `orderer`), not its MSP ID |
+| `--cert` | yes (≥1) | PEM path of a known certificate (repeatable) |
+| `--block` | yes | Config block to edit in place |
 
-`add` is idempotent (skips certs already present with a message to the admin). 
-`remove` errors if a named cert is absent.
+Each file must hold a PEM-encoded X.509 certificate of an identity, not of a CA. The MSP never
+accepts a CA certificate as an identity. The same certificate can't be given twice.
+
+Application orgs and orderer orgs are assumed to be different orgs (see
+[Modify Commands](#modify-commands-automation-of-the-manual-step)): only the MSP of the named org,
+in its own group, changes.
+
+**Removing a known certificate** breaks the clients that still sign with its certificate ID. Once
+the update commits, their transactions are rejected. It is the admin's responsibility to remove
+only certificates that are no longer in use.
+
+**When the command fails**
+
+The command leaves the block unchanged if:
+
+- **Every subcommand:**
+  - a certificate file can't be read, isn't a PEM-encoded X.509 certificate, is a CA certificate,
+    or is given twice;
+  - the group has no org with that name;
+  - the edited config is not a valid channel config. For example, the org's MSP rejects a known
+    certificate that none of its CAs issued.
+- **`remove`:** a certificate is not in the list.
 
 ---
 
@@ -763,6 +802,10 @@ The party's org is the orderer org whose MSP `name` is the `msp_id` of the party
 An org can run several parties, which all trust the org's MSP, so the change is applied to **every
 party of the org**, whichever of them `--party` names.
 
+The orderer org is assumed not to be an application org too (see
+[Modify Commands](#modify-commands-automation-of-the-manual-step)): only its MSP in the `Orderer`
+group changes.
+
 **Node OUs.** Each node OU of the org MSP (`fabric_node_ous`: client, peer, admin and orderer)
 pins one CA, which must be one of the MSP's `root_certs` or `intermediate_certs`. Every identity of
 the org, including the party's nodes, must be issued by the CA its node OU pins. So run `node-ous`
@@ -860,14 +903,8 @@ fxadmin follow --config admin_org2.yaml --current-block config1.pb --timeout 60s
 
 # ---- Update 3: remove the old CAs.
 cp config2.pb next.pb
-#   First, replace org1's MSP known_certs: the certificates of the old CA by those of the new CA.
-#   List the batcher of every shard of party 1 in both commands, not only batcher1
-#   (old-batcher2-sign.crt and batcher2-sign.crt, …): an old-CA certificate left in known_certs
-#   makes the `ca set` below fail.
-fxadmin modify party known-certs remove --party 1 \
-  --cert old-admin-sign.crt --cert old-client-sign.crt --cert old-router-sign.crt \
-  --cert old-consenter-sign.crt --cert old-assembler-sign.crt --cert old-batcher1-sign.crt --block next.pb
-fxadmin modify party known-certs add --party 1 \
+#   First, replace org1's MSP known_certs with the certificates issued by the new CA.
+fxadmin modify orderer known-certs set --org org1 \
   --cert admin-sign.crt --cert client-sign.crt --cert router-sign.crt \
   --cert consenter-sign.crt --cert assembler-sign.crt --cert batcher1-sign.crt --block next.pb
 fxadmin modify party ca set --party 1 --sign-cert new-ca.crt --tls-cert new-tlsca.crt --block next.pb

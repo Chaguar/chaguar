@@ -270,6 +270,15 @@ fxadmin compute-update --pb current.pb next.pb --output config_update.pb
 `modify` edits the block on disk and never contacts the network. 
 Keep `current.pb` untouched for the `compute-update --pb` step in #4.
 
+**When a command is rejected**
+
+A modify command checks its arguments, and then checks the edited config with the rules of the
+channel config: it accepts and rejects a change exactly as the channel config does. A rejected
+command prints the reason and leaves the block file unchanged. The changes that earlier modify
+commands made to the same block stay. Fix the cause and run the command again. The rules that the
+orderer adds on top of the channel config are checked when the config update is submitted. Each
+command lists its rejections under **When the command fails**.
+
 **Application orgs and orderer orgs are different orgs.** fxadmin assumes that each org is either
 an application org (in the `Application` group) or an orderer org (in the `Orderer` group), with
 its own MSP. An org that is in both groups is not supported. A change to its MSP is rejected,
@@ -449,6 +458,17 @@ config_group:                        # → Application/groups/<name>
 |------|:--------:|-------------------------------------------|
 | `--org` | yes | Path to the organization definition YAML  |
 | `--block` | yes | Config block to edit in place             |
+
+**When the command fails**
+
+The command leaves the block unchanged if:
+
+- `peer2.yaml` cannot be parsed, has no `name` or no `config_group`, or has a key other than these two.
+- A key of `config_group` is not a field of the block structure.
+- An application org with the same `name` is already in the block.
+- The edited config is not a valid channel config. This also catches a `config_group` with no MSP,
+  and an MSP whose MSP ID is already the MSP ID of an org in the block but whose config differs
+  from that org's MSP.
 
 ---
 **modify app remove**

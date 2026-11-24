@@ -342,6 +342,17 @@ fxadmin modify app add --org=peer2.yaml --block next.pb
 
 The command copies the config group into the block as it is, and fills in nothing.
 
+**Certificates.** Give every certificate and CRL as the path of its PEM file, absolute or
+relative. A relative path is relative to the directory of `peer2.yaml`. Each file must hold
+exactly one PEM block, an X.509 certificate, or a CRL in `revocation_list`. A file of several
+blocks, such as a certificate followed by its private key or a bundle of certificates, is
+rejected: give each certificate in a file of its own.
+
+- `root_certs`, `intermediate_certs`, `tls_root_certs`, `tls_intermediate_certs` and the
+  `certificate` of an OU identifier must hold CA certificates.
+- `admins` and `known_certs` must hold identity certificates, not CA certificates.
+- A list can't hold the same certificate twice.
+
 ```yaml
 # peer2.yaml
 name: peer2                          # the org's key under Application
@@ -433,10 +444,10 @@ config_group:                        # → Application/groups/<name>
         config:                      # FabricMSPConfig
           name: peer2                # MSP ID; the msp_identifier of the policies
           root_certs:
-            - <base64 PEM>
+            - crypto/peer2/ca/ca-cert.pem
           intermediate_certs: []
           admins:
-            - <base64 PEM>
+            - crypto/peer2/users/Admin/msp/signcerts/cert.pem
           revocation_list: []
           signing_identity: null
           organizational_unit_identifiers: []
@@ -444,12 +455,12 @@ config_group:                        # → Application/groups/<name>
             signature_hash_family: SHA2
             identity_identifier_hash_function: SHA256
           tls_root_certs:
-            - <base64 PEM>
+            - crypto/peer2/tlsca/tlsca-cert.pem
           tls_intermediate_certs: []
           fabric_node_ous: null
           known_certs:
-            - <base64 PEM>
-            - <base64 PEM>
+            - crypto/peer2/users/User1/msp/signcerts/cert.pem
+            - crypto/peer2/users/User2/msp/signcerts/cert.pem
 ```
 
 **Flags**
@@ -465,6 +476,8 @@ The command leaves the block unchanged if:
 
 - `peer2.yaml` cannot be parsed, has no `name` or no `config_group`, or has a key other than these two.
 - A key of `config_group` is not a field of the block structure.
+- A certificate or CRL file can't be read, or doesn't hold what its field needs (see
+  **Certificates**).
 - An application org with the same `name` is already in the block.
 - The edited config is not a valid channel config. This also catches a `config_group` with no MSP,
   and an MSP whose MSP ID is already the MSP ID of an org in the block but whose config differs
@@ -565,10 +578,17 @@ config block:
 
 The command copies both sections into the block as they are, and fills in nothing.
 
-**Certificates.** Give every certificate and CRL as the path of its PEM file. A relative path is
-relative to the directory of `party5.yaml`. Only the first PEM block of each file is stored, and
-its type isn't checked, so a file must start with its certificate or CRL. A private key after it
-is not stored.
+**Certificates.** Give every certificate and CRL as the path of its PEM file, absolute or
+relative. A relative path is relative to the directory of `party5.yaml`. Each file must hold
+exactly one PEM block, an X.509 certificate, or a CRL in `revocation_list`. A file of several
+blocks, such as a certificate followed by its private key or a bundle of certificates, is
+rejected: give each certificate in a file of its own.
+
+- `CACerts` and `TLSCACerts` of `Party`, and `root_certs`, `intermediate_certs`,
+  `tls_root_certs`, `tls_intermediate_certs` and the `certificate` of an OU identifier of the
+  org's MSP must hold CA certificates.
+- `admins` and `known_certs` must hold identity certificates, not CA certificates.
+- A list can't hold the same certificate twice.
 
 ```yaml
 # party5.yaml
@@ -713,7 +733,8 @@ The command leaves the block unchanged if:
 
 - `party5.yaml` cannot be parsed, has no `Party` or `Org` section, or `Org` has no `Name`.
 - A key of `Party` or `Org` is not a field of the block structure.
-- A certificate or CRL path does not exist, or the file holds no PEM block.
+- A certificate or CRL file can't be read, or doesn't hold what its field needs (see
+  **Certificates**).
 - An orderer org with the same `Name` is already in the block. Adding a party to an existing org is
   not supported.
 - `Party` has no `ConsenterConfig`, or `Org` has no Fabric MSP with a `name`.
@@ -722,8 +743,8 @@ The command leaves the block unchanged if:
   **modify party node**.
 - An address in the org's `Endpoints` value cannot be parsed, or its host is not a valid host
   under the same rules.
-- The edited config is not a valid channel config. This also catches an org certificate or CRL
-  that cannot be parsed.
+- The edited config is not a valid channel config. For example, the org's MSP rejects a known
+  certificate that none of its CAs issued.
 
 fxadmin checks the hosts only because the orderer doesn't check them yet. These checks will be
 removed from `modify party add` once the orderer checks hosts and fxadmin runs the orderer's checks

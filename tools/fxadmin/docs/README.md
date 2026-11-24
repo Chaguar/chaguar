@@ -272,9 +272,10 @@ Keep `current.pb` untouched for the `compute-update --pb` step in #4.
 
 **When a command is rejected**
 
-A modify command checks its arguments, and then checks the edited config with the rules of the
-channel config: it accepts and rejects a change exactly as the channel config does. A rejected
-command prints the reason and leaves the block file unchanged. The changes that earlier modify
+A modify command first checks its arguments, including the certificate files it reads. It then
+checks the edited config with the rules of the channel config, and accepts or rejects the edited
+config exactly as the channel config does. A rejected command prints the reason and leaves the
+block file unchanged. The changes that earlier modify
 commands made to the same block stay. Fix the cause and run the command again. The rules that the
 orderer adds on top of the channel config are checked when the config update is submitted. Each
 command lists its rejections under **When the command fails**.
@@ -348,8 +349,14 @@ exactly one PEM block, an X.509 certificate, or a CRL in `revocation_list`. A fi
 blocks, such as a certificate followed by its private key or a bundle of certificates, is
 rejected: give each certificate in a file of its own.
 
-- `root_certs`, `intermediate_certs`, `tls_root_certs`, `tls_intermediate_certs` and the
-  `certificate` of an OU identifier must hold CA certificates.
+- `root_certs`, `intermediate_certs`, `tls_root_certs` and `tls_intermediate_certs` must hold CA
+  certificates.
+- In each entry of `organizational_unit_identifiers`, the `certificate` field must be a CA
+  certificate. The entry's `organizational_unit_identifier` is the OU name, a plain string.
+- In each node OU of `fabric_node_ous` (`client_ou_identifier`, `peer_ou_identifier`,
+  `admin_ou_identifier`, `orderer_ou_identifier`), the `certificate` field must be a CA
+  certificate, or empty (`""`) to accept an identity issued by any of the MSP's CAs. This holds
+  whether node OUs are enabled or not.
 - `admins` and `known_certs` must hold identity certificates, not CA certificates.
 - A list can't hold the same certificate twice.
 
@@ -478,6 +485,7 @@ The command leaves the block unchanged if:
 - A key of `config_group` is not a field of the block structure.
 - A certificate or CRL file can't be read, or doesn't hold what its field needs (see
   **Certificates**).
+- The block has no `Application` group.
 - An application org with the same `name` is already in the block.
 - The edited config is not a valid channel config. This also catches a `config_group` with no MSP,
   and an MSP whose MSP ID is already the MSP ID of an org in the block but whose config differs
@@ -584,9 +592,14 @@ exactly one PEM block, an X.509 certificate, or a CRL in `revocation_list`. A fi
 blocks, such as a certificate followed by its private key or a bundle of certificates, is
 rejected: give each certificate in a file of its own.
 
-- `CACerts` and `TLSCACerts` of `Party`, and `root_certs`, `intermediate_certs`,
-  `tls_root_certs`, `tls_intermediate_certs` and the `certificate` of an OU identifier of the
-  org's MSP must hold CA certificates.
+- `CACerts` and `TLSCACerts` of `Party`, and `root_certs`, `intermediate_certs`, `tls_root_certs`
+  and `tls_intermediate_certs` of the org's MSP must hold CA certificates.
+- In each entry of `organizational_unit_identifiers`, the `certificate` field must be a CA
+  certificate. The entry's `organizational_unit_identifier` is the OU name, a plain string.
+- In each node OU of `fabric_node_ous` (`client_ou_identifier`, `peer_ou_identifier`,
+  `admin_ou_identifier`, `orderer_ou_identifier`), the `certificate` field must be a CA
+  certificate, or empty (`""`) to accept an identity issued by any of the MSP's CAs. This holds
+  whether node OUs are enabled or not.
 - `admins` and `known_certs` must hold identity certificates, not CA certificates.
 - A list can't hold the same certificate twice.
 

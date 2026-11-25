@@ -28,6 +28,9 @@ The transaction must have sufficient endorsements to satisfy its endorsement
 policy. Use 'fxconfig tx merge' to combine endorsements from multiple
 organizations before submission.
 
+The transaction must be submitted with the same identity that created it:
+its txID is derived from the creator identity and a nonce stored in the file.
+
 Status Codes (with --wait):
   0 - Transaction successfully committed
   1 - Transaction failed (see error message for details)
@@ -55,13 +58,13 @@ Examples:
 				return err
 			}
 
-			txID, tx, err := ctx.IOTransactionCodec.Decode(input)
+			id, tx, err := ctx.IOTransactionCodec.Decode(input)
 			if err != nil {
 				return err
 			}
 
 			if wait {
-				status, err := ctx.App.SubmitTransactionWithWait(cmd.Context(), txID, tx)
+				status, err := ctx.App.SubmitTransactionWithWait(cmd.Context(), id, tx)
 				if err != nil {
 					return err
 				}
@@ -71,7 +74,7 @@ Examples:
 				return requireCommitted(status)
 			}
 
-			return ctx.App.SubmitTransaction(cmd.Context(), txID, tx)
+			return ctx.App.SubmitTransaction(cmd.Context(), id, tx)
 		},
 	}
 	wait.bind(cmd)

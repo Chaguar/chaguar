@@ -13,6 +13,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/adapters"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
 
 // TxStatus represents the finality status of a submitted transaction.
@@ -22,9 +23,9 @@ type TxStatus = int
 const UnknownStatus TxStatus = 0
 
 // SubmitTransaction receives a transaction and sends it to the ordering service.
-func (d *AdminApp) SubmitTransaction(ctx context.Context, txID string, tx *applicationpb.Tx) error {
+func (d *AdminApp) SubmitTransaction(ctx context.Context, id transaction.ID, tx *applicationpb.Tx) error {
 	// get orderer client and signing identity
-	sc, err := d.prepareSubmission(ctx)
+	sc, err := d.prepareSubmission(ctx, id)
 	if err != nil {
 		return fmt.Errorf("failed to prepare submission: %w", err)
 	}
@@ -32,7 +33,7 @@ func (d *AdminApp) SubmitTransaction(ctx context.Context, txID string, tx *appli
 		_ = sc.ordererClient.Close()
 	}()
 
-	if err := sc.ordererClient.Broadcast(ctx, sc.signingIdentity, txID, tx); err != nil {
+	if err := sc.ordererClient.Broadcast(ctx, sc.signingIdentity, id, tx); err != nil {
 		return fmt.Errorf("failed to broadcast transaction: %w", err)
 	}
 
@@ -40,9 +41,13 @@ func (d *AdminApp) SubmitTransaction(ctx context.Context, txID string, tx *appli
 }
 
 // SubmitTransactionWithWait receives a transaction and sends it to the ordering service.
-func (d *AdminApp) SubmitTransactionWithWait(ctx context.Context, txID string, tx *applicationpb.Tx) (TxStatus, error) {
+func (d *AdminApp) SubmitTransactionWithWait(
+	ctx context.Context,
+	id transaction.ID,
+	tx *applicationpb.Tx,
+) (TxStatus, error) {
 	// get orderer client and signing identity
-	sc, err := d.prepareSubmission(ctx)
+	sc, err := d.prepareSubmission(ctx, id)
 	if err != nil {
 		return UnknownStatus, fmt.Errorf("failed to prepare submission: %w", err)
 	}
@@ -60,12 +65,12 @@ func (d *AdminApp) SubmitTransactionWithWait(ctx context.Context, txID string, t
 		_ = nc.Close()
 	}()
 
-	subscription, err := nc.Subscribe(ctx, txID)
+	subscription, err := nc.Subscribe(ctx, id.TxID)
 	if err != nil {
 		return UnknownStatus, fmt.Errorf("failed to subscribe to transaction events: %w", err)
 	}
 
-	if err := sc.ordererClient.Broadcast(ctx, sc.signingIdentity, txID, tx); err != nil {
+	if err = sc.ordererClient.Broadcast(ctx, sc.signingIdentity, id, tx); err != nil {
 		return UnknownStatus, fmt.Errorf("failed to broadcast transaction: %w", err)
 	}
 
@@ -82,11 +87,19 @@ type submissionContext struct {
 	ordererClient   adapters.OrdererClient
 }
 
-func (d *AdminApp) prepareSubmission(_ context.Context) (*submissionContext, error) {
+// prepareSubmission also checks, before any network call, that the local identity created id.
+func (d *AdminApp) prepareSubmission(_ context.Context, id transaction.ID) (*submissionContext, error) {
 	// get signing identity
 	sid, err := d.MspProvider.Get()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get signing identity: %w", err)
+	}
+	creator, err := sid.Serialize()
+	if err != nil {
+		return nil, fmt.Errorf("cannot serialize signing identity: %w", err)
+	}
+	if err = id.VerifyCreator(creator); err != nil {
+		return nil, err
 	}
 
 	// get orderer client

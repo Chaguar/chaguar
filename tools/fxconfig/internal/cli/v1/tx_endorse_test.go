@@ -19,6 +19,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/cli/v1/cliio"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
 
 func TestNewTxEndorseCommand(t *testing.T) {
@@ -95,8 +96,13 @@ func TestTxEndorseCommand_MissingArg(t *testing.T) {
 // Shared by tx_endorse_test.go, tx_merge_test.go, and tx_submit_test.go.
 func writeTxFile(t *testing.T, txID string, tx *applicationpb.Tx) string {
 	t.Helper()
+	return writeTxFileWithNonce(t, txID, []byte("nonce"), tx)
+}
 
-	data, err := (&cliio.JSONCodec{}).Encode(txID, tx)
+func writeTxFileWithNonce(t *testing.T, txID string, nonce []byte, tx *applicationpb.Tx) string {
+	t.Helper()
+
+	data, err := (&cliio.JSONCodec{}).Encode(transaction.ID{TxID: txID, Nonce: nonce}, tx)
 	require.NoError(t, err)
 
 	path := filepath.Join(t.TempDir(), "tx.json")

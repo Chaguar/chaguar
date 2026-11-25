@@ -11,7 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
+
+var testNonce = []byte("nonce-123")
 
 func TestJSONCodec_Encode(t *testing.T) {
 	t.Parallel()
@@ -24,15 +27,16 @@ func TestJSONCodec_Encode(t *testing.T) {
 		tx := &applicationpb.Tx{}
 		txID := "tx-123"
 
-		data, err := codec.Encode(txID, tx)
+		data, err := codec.Encode(transaction.ID{TxID: txID, Nonce: testNonce}, tx)
 		require.NoError(t, err)
 		require.NotEmpty(t, data)
 
-		// Verify JSON structure
+		// Verify JSON structure; []byte is encoded as base64
 		var result map[string]any
 		err = json.Unmarshal(data, &result)
 		require.NoError(t, err)
 		require.Equal(t, txID, result["txID"])
+		require.Equal(t, "bm9uY2UtMTIz", result["nonce"])
 		require.NotNil(t, result["tx"])
 	})
 
@@ -41,26 +45,10 @@ func TestJSONCodec_Encode(t *testing.T) {
 
 		txID := "tx-123"
 
-		data, err := codec.Encode(txID, nil)
+		data, err := codec.Encode(transaction.ID{TxID: txID, Nonce: testNonce}, nil)
 		require.Error(t, err)
 		require.Nil(t, data)
 		require.Contains(t, err.Error(), "tx is nil")
-	})
-
-	t.Run("success with empty transaction", func(t *testing.T) {
-		t.Parallel()
-
-		tx := &applicationpb.Tx{}
-		txID := "tx-456"
-
-		data, err := codec.Encode(txID, tx)
-		require.NoError(t, err)
-		require.NotEmpty(t, data)
-
-		var result map[string]any
-		err = json.Unmarshal(data, &result)
-		require.NoError(t, err)
-		require.Equal(t, txID, result["txID"])
 	})
 }
 
@@ -99,61 +87,42 @@ func TestJSONCodec_Decode(t *testing.T) {
       }
     ]
   },
+  "nonce": "bm9uY2UtMTIz",
   "txID": "1ca34644c2ac3b7570cc09fee527757d603e282ed03392df805c2e00437ab224"
 }`
 
-		txID, tx, err := codec.Decode([]byte(input))
+		id, tx, err := codec.Decode([]byte(input))
 		require.NoError(t, err)
-		require.Equal(t, "1ca34644c2ac3b7570cc09fee527757d603e282ed03392df805c2e00437ab224", txID)
+		require.Equal(t, "1ca34644c2ac3b7570cc09fee527757d603e282ed03392df805c2e00437ab224", id.TxID)
+		require.Equal(t, testNonce, id.Nonce)
 		require.NotNil(t, tx)
 		require.Len(t, tx.GetNamespaces(), 1)
 		require.Equal(t, "_meta", tx.GetNamespaces()[0].GetNsId())
 	})
 
-	t.Run("error with invalid JSON", func(t *testing.T) {
+	for name, input := range map[string]string{
+		"invalid JSON":  `{invalid json}`,
+		"missing txID":  `{"nonce": "bm9uY2UtMTIz", "tx": {}}`,
+		"missing nonce": `{"txID": "tx-123", "tx": {}}`,
+		"empty nonce":   `{"txID": "tx-123", "nonce": "", "tx": {}}`,
+		"missing tx":    `{"txID": "tx-123", "nonce": "bm9uY2UtMTIz"}`,
+		"empty input":   ``,
+	} {
+		t.Run("error with "+name, func(t *testing.T) {
+			t.Parallel()
+
+			id, tx, err := codec.Decode([]byte(input))
+			require.Error(t, err)
+			require.Empty(t, id)
+			require.Nil(t, tx)
+		})
+	}
+
+	t.Run("missing nonce error explains how to fix it", func(t *testing.T) {
 		t.Parallel()
 
-		input := `{invalid json}`
-
-		txID, tx, err := codec.Decode([]byte(input))
-		require.Error(t, err)
-		require.Empty(t, txID)
-		require.Nil(t, tx)
-	})
-
-	t.Run("missing txID returns empty string without error", func(t *testing.T) {
-		t.Parallel()
-
-		input := `{
-			"tx": {}
-		}`
-
-		txID, tx, err := codec.Decode([]byte(input))
-		require.NoError(t, err)
-		require.Empty(t, txID)
-		require.NotNil(t, tx)
-	})
-
-	t.Run("error with missing tx", func(t *testing.T) {
-		t.Parallel()
-
-		input := `{
-			"txID": "tx-123"
-		}`
-
-		txID, tx, err := codec.Decode([]byte(input))
-		require.Error(t, err)
-		require.Empty(t, txID)
-		require.Nil(t, tx)
-	})
-
-	t.Run("error with empty input", func(t *testing.T) {
-		t.Parallel()
-
-		txID, tx, err := codec.Decode([]byte{})
-		require.Error(t, err)
-		require.Empty(t, txID)
-		require.Nil(t, tx)
+		_, _, err := codec.Decode([]byte(`{"txID": "tx-123", "tx": {}}`))
+		require.ErrorContains(t, err, "no nonce")
 	})
 }
 
@@ -174,16 +143,13 @@ func TestJSONCodec_RoundTrip(t *testing.T) {
 	}
 	originalTxID := "tx-round-trip"
 
-	// Encode
-	encoded, err := codec.Encode(originalTxID, tx)
+	encoded, err := codec.Encode(transaction.ID{TxID: originalTxID, Nonce: testNonce}, tx)
 	require.NoError(t, err)
 
-	// Decode
-	decodedTxID, decodedTx, err := codec.Decode(encoded)
+	decoded, decodedTx, err := codec.Decode(encoded)
 	require.NoError(t, err)
 
-	// Verify
-	require.Equal(t, originalTxID, decodedTxID)
+	require.Equal(t, transaction.ID{TxID: originalTxID, Nonce: testNonce}, decoded)
 	require.Equal(t, tx.GetNamespaces()[0].GetNsId(), decodedTx.GetNamespaces()[0].GetNsId())
 	require.Equal(t, tx.GetNamespaces()[0].GetBlindWrites()[0], decodedTx.GetNamespaces()[0].GetBlindWrites()[0])
 }

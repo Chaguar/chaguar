@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/adapters"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/config"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/provider"
@@ -86,7 +87,12 @@ func makeConfigVersionProvider(version uint64) *provider.Provider[adapters.Query
 func TestDeployNamespace_CreateOnly(t *testing.T) {
 	t.Parallel()
 
-	a := &AdminApp{Validators: fakeValidationContext(), QueryProvider: makeConfigVersionProvider(5)}
+	sid := &testSigningIdentity{}
+	a := &AdminApp{
+		Validators:    fakeValidationContext(),
+		QueryProvider: makeConfigVersionProvider(5),
+		MspProvider:   makeMSPProvider(sid, nil),
+	}
 	input := &DeployNamespaceInput{
 		NsID:    "testns",
 		Version: -1,
@@ -98,7 +104,10 @@ func TestDeployNamespace_CreateOnly(t *testing.T) {
 	out, status, err := a.DeployNamespace(t.Context(), input)
 	require.NoError(t, err)
 	require.NotNil(t, out)
-	require.NotEmpty(t, out.TxID)
+	require.NotEmpty(t, out.Nonce)
+	creator, err := sid.Serialize()
+	require.NoError(t, err)
+	require.Equal(t, protoutil.ComputeTxID(out.Nonce, creator), out.TxID, "txID must bind the creator")
 	require.NotNil(t, out.Tx)
 	require.Equal(t, uint64(5), out.Tx.Namespaces[0].NsVersion, "meta NsVersion must be the config version")
 	require.Equal(t, UnknownStatus, status)
@@ -110,7 +119,7 @@ func TestDeployNamespace_QueryError(t *testing.T) {
 	a := &AdminApp{
 		Validators:    fakeValidationContext(),
 		QueryProvider: makeQueryProvider(&mockQueryClient{err: errors.New("query service unavailable")}, nil),
-		// a nil MSP provider would panic if endorsement were attempted
+		MspProvider:   makeMSPProvider(&testSigningIdentity{}, nil),
 	}
 	input := validDeployInput()
 	input.Endorse = true
@@ -129,6 +138,7 @@ func TestDeployNamespace_QueriesNotConfigured(t *testing.T) {
 		QueryProvider: provider.New(func(_ *config.QueriesConfig) (adapters.QueryClient, error) {
 			return &mockQueryClient{}, nil
 		}, &config.QueriesConfig{}, fakeValidationContext()),
+		MspProvider: makeMSPProvider(&testSigningIdentity{}, nil),
 	}
 
 	_, _, err := a.DeployNamespace(t.Context(), validDeployInput())

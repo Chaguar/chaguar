@@ -16,6 +16,7 @@ import (
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/adapters"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/config"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/provider"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/validation"
 )
 
@@ -24,8 +25,8 @@ type Application interface {
 	DeployNamespace(ctx context.Context, input *DeployNamespaceInput) (*DeployNamespaceOutput, TxStatus, error)
 	ListNamespaces(ctx context.Context) ([]NamespaceQueryResult, error)
 	EndorseTransaction(ctx context.Context, txID string, tx *applicationpb.Tx) (*applicationpb.Tx, error)
-	SubmitTransaction(ctx context.Context, txID string, tx *applicationpb.Tx) error
-	SubmitTransactionWithWait(ctx context.Context, txID string, tx *applicationpb.Tx) (TxStatus, error)
+	SubmitTransaction(ctx context.Context, id transaction.ID, tx *applicationpb.Tx) error
+	SubmitTransactionWithWait(ctx context.Context, id transaction.ID, tx *applicationpb.Tx) (TxStatus, error)
 	MergeTransactions(ctx context.Context, txs []*applicationpb.Tx) (*applicationpb.Tx, error)
 }
 

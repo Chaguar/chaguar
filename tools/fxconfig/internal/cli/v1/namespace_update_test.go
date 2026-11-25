@@ -17,6 +17,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/api/committerpb"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/app"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/cli/v1/cliio"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
 
 func TestNewUpdateCommand(t *testing.T) {
@@ -44,8 +45,8 @@ func TestNsUpdateCommandRun_TxReturned(t *testing.T) {
 
 	mockApp := &testApp{}
 	deployOut := &app.DeployNamespaceOutput{
-		TxID: "tx-456",
-		Tx:   &applicationpb.Tx{},
+		ID: transaction.ID{TxID: "tx-456", Nonce: []byte("nonce")},
+		Tx: &applicationpb.Tx{},
 	}
 	mockApp.On("DeployNamespace", mock.Anything, mock.Anything).Return(deployOut, app.UnknownStatus, nil)
 

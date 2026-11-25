@@ -19,13 +19,19 @@ import (
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/adapters"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/config"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/provider"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
+
+// testID is valid for testSigningIdentity, which serializes to an empty creator.
+var testID = transaction.GenerateTxID([]byte{})
 
 type mockOrdererClient struct {
 	broadcastErr error
 }
 
-func (m *mockOrdererClient) Broadcast(_ context.Context, _ msp.SigningIdentity, _ string, _ *applicationpb.Tx) error {
+func (m *mockOrdererClient) Broadcast(
+	_ context.Context, _ msp.SigningIdentity, _ transaction.ID, _ *applicationpb.Tx,
+) error {
 	return m.broadcastErr
 }
 
@@ -92,6 +98,25 @@ func someTx() *applicationpb.Tx {
 
 // SubmitTransaction tests
 
+// TestSubmit_WrongCreator checks that a transaction created by another identity is rejected
+// before fxconfig contacts the notification service or the orderer.
+func TestSubmit_WrongCreator(t *testing.T) {
+	t.Parallel()
+
+	a := &AdminApp{
+		MspProvider:          makeMSPProvider(&testSigningIdentity{}, nil),
+		OrdererProvider:      makeOrdererProvider(nil, errors.New("orderer must not be used")),
+		NotificationProvider: makeNotificationProvider(nil, errors.New("notifications must not be used")),
+	}
+	otherID := transaction.GenerateTxID([]byte("other-creator"))
+
+	err := a.SubmitTransaction(t.Context(), otherID, someTx())
+	require.ErrorContains(t, err, "created by a different identity")
+
+	_, err = a.SubmitTransactionWithWait(t.Context(), otherID, someTx())
+	require.ErrorContains(t, err, "created by a different identity")
+}
+
 func TestSubmitTransaction_MspProviderError(t *testing.T) {
 	t.Parallel()
 
@@ -100,7 +125,7 @@ func TestSubmitTransaction_MspProviderError(t *testing.T) {
 		OrdererProvider: makeOrdererProvider(&mockOrdererClient{}, nil),
 	}
 
-	err := a.SubmitTransaction(t.Context(), "tx-1", someTx())
+	err := a.SubmitTransaction(t.Context(), testID, someTx())
 	require.Error(t, err)
 }
 
@@ -112,7 +137,7 @@ func TestSubmitTransaction_OrdererProviderError(t *testing.T) {
 		OrdererProvider: makeOrdererProvider(nil, errors.New("orderer unavailable")),
 	}
 
-	err := a.SubmitTransaction(t.Context(), "tx-1", someTx())
+	err := a.SubmitTransaction(t.Context(), testID, someTx())
 	require.Error(t, err)
 }
 
@@ -124,7 +149,7 @@ func TestSubmitTransaction_BroadcastError(t *testing.T) {
 		OrdererProvider: makeOrdererProvider(&mockOrdererClient{broadcastErr: errors.New("broadcast failed")}, nil),
 	}
 
-	err := a.SubmitTransaction(t.Context(), "tx-1", someTx())
+	err := a.SubmitTransaction(t.Context(), testID, someTx())
 	require.Error(t, err)
 }
 
@@ -136,7 +161,7 @@ func TestSubmitTransaction_Success(t *testing.T) {
 		OrdererProvider: makeOrdererProvider(&mockOrdererClient{}, nil),
 	}
 
-	err := a.SubmitTransaction(t.Context(), "tx-1", someTx())
+	err := a.SubmitTransaction(t.Context(), testID, someTx())
 	require.NoError(t, err)
 }
 
@@ -151,7 +176,7 @@ func TestSubmitTransaction_ContextCancelled(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	err := a.SubmitTransaction(ctx, "tx-1", someTx())
+	err := a.SubmitTransaction(ctx, testID, someTx())
 	require.Error(t, err)
 	require.ErrorIs(t, err, context.Canceled)
 }
@@ -167,7 +192,7 @@ func TestSubmitTransactionWithWait_MspProviderError(t *testing.T) {
 		NotificationProvider: makeNotificationProvider(&mockNotificationClient{}, nil),
 	}
 
-	_, err := a.SubmitTransactionWithWait(t.Context(), "tx-1", someTx())
+	_, err := a.SubmitTransactionWithWait(t.Context(), testID, someTx())
 	require.Error(t, err)
 }
 
@@ -180,7 +205,7 @@ func TestSubmitTransactionWithWait_NotificationProviderError(t *testing.T) {
 		NotificationProvider: makeNotificationProvider(nil, errors.New("notification unavailable")),
 	}
 
-	status, err := a.SubmitTransactionWithWait(t.Context(), "tx-1", someTx())
+	status, err := a.SubmitTransactionWithWait(t.Context(), testID, someTx())
 	require.Error(t, err)
 	require.Equal(t, UnknownStatus, status)
 }
@@ -196,7 +221,7 @@ func TestSubmitTransactionWithWait_SubscribeError(t *testing.T) {
 		),
 	}
 
-	status, err := a.SubmitTransactionWithWait(t.Context(), "tx-1", someTx())
+	status, err := a.SubmitTransactionWithWait(t.Context(), testID, someTx())
 	require.Error(t, err)
 	require.Equal(t, UnknownStatus, status)
 }
@@ -212,7 +237,7 @@ func TestSubmitTransactionWithWait_BroadcastError(t *testing.T) {
 		NotificationProvider: makeNotificationProvider(&mockNotificationClient{}, nil),
 	}
 
-	status, err := a.SubmitTransactionWithWait(t.Context(), "tx-1", someTx())
+	status, err := a.SubmitTransactionWithWait(t.Context(), testID, someTx())
 	require.Error(t, err)
 	require.Equal(t, UnknownStatus, status)
 }
@@ -228,7 +253,7 @@ func TestSubmitTransactionWithWait_WaitForEventError(t *testing.T) {
 		),
 	}
 
-	status, err := a.SubmitTransactionWithWait(t.Context(), "tx-1", someTx())
+	status, err := a.SubmitTransactionWithWait(t.Context(), testID, someTx())
 	require.Error(t, err)
 	require.Equal(t, UnknownStatus, status)
 }
@@ -244,7 +269,7 @@ func TestSubmitTransactionWithWait_Success(t *testing.T) {
 		NotificationProvider: makeNotificationProvider(&mockNotificationClient{status: expectedStatus}, nil),
 	}
 
-	status, err := a.SubmitTransactionWithWait(t.Context(), "tx-1", someTx())
+	status, err := a.SubmitTransactionWithWait(t.Context(), testID, someTx())
 	require.NoError(t, err)
 	require.Equal(t, expectedStatus, status)
 }

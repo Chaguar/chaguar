@@ -43,6 +43,8 @@ specify doesn't match the current version, the update will fail.
 The query service must be configured: the transaction is built against the
 current channel config version. With --wait, the command exits non-zero if
 the transaction is not committed.
+The MSP must be configured too, even without --endorse: the txID is derived
+from this identity, so the same identity must later submit the transaction.
 
 Examples:
   # Update namespace policy (check version first with 'list')
@@ -91,7 +93,7 @@ Examples:
 				return nil
 			}
 
-			o, err := ctx.IOTransactionCodec.Encode(res.TxID, res.Tx)
+			o, err := ctx.IOTransactionCodec.Encode(res.ID, res.Tx)
 			if err != nil {
 				return err
 			}

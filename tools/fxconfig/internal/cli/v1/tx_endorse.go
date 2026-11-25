@@ -47,17 +47,17 @@ Examples:
 				return err
 			}
 
-			txID, tx, err := ctx.IOTransactionCodec.Decode(input)
+			id, tx, err := ctx.IOTransactionCodec.Decode(input)
 			if err != nil {
 				return err
 			}
 
-			endorsedTx, err := ctx.App.EndorseTransaction(cmd.Context(), txID, tx)
+			endorsedTx, err := ctx.App.EndorseTransaction(cmd.Context(), id.TxID, tx)
 			if err != nil {
 				return err
 			}
 
-			o, err := ctx.IOTransactionCodec.Encode(txID, endorsedTx)
+			o, err := ctx.IOTransactionCodec.Encode(id, endorsedTx)
 			if err != nil {
 				return err
 			}

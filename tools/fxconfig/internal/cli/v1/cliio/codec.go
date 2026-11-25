@@ -11,19 +11,20 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
 
 // Codec handles encoding and decoding of transactions for CLI I/O.
 type Codec interface {
-	Encode(txID string, tx *applicationpb.Tx) ([]byte, error)
-	Decode(data []byte) (txID string, tx *applicationpb.Tx, err error)
+	Encode(id transaction.ID, tx *applicationpb.Tx) ([]byte, error)
+	Decode(data []byte) (id transaction.ID, tx *applicationpb.Tx, err error)
 }
 
 // JSONCodec implements Codec using JSON format with protobuf marshaling.
 type JSONCodec struct{}
 
-// Encode converts a transaction to JSON format with transaction ID.
-func (*JSONCodec) Encode(txID string, tx *applicationpb.Tx) ([]byte, error) {
+// Encode converts a transaction to JSON format with transaction ID and nonce.
+func (*JSONCodec) Encode(id transaction.ID, tx *applicationpb.Tx) ([]byte, error) {
 	var txJSON map[string]any
 
 	if tx == nil {
@@ -45,31 +46,40 @@ func (*JSONCodec) Encode(txID string, tx *applicationpb.Tx) ([]byte, error) {
 	}
 
 	output := map[string]any{
-		"txID": txID,
-		"tx":   txJSON,
+		"txID":  id.TxID,
+		"nonce": id.Nonce,
+		"tx":    txJSON,
 	}
 
 	return json.MarshalIndent(output, "", "  ")
 }
 
-// Decode parses JSON data into transaction ID and transaction.
-func (*JSONCodec) Decode(data []byte) (string, *applicationpb.Tx, error) {
+// Decode parses JSON data into transaction ID, nonce, and transaction.
+func (*JSONCodec) Decode(data []byte) (transaction.ID, *applicationpb.Tx, error) {
 	carrier := struct {
-		TxID string          `json:"txID"`
-		Tx   json.RawMessage `json:"tx"`
+		TxID  string          `json:"txID"`
+		Nonce []byte          `json:"nonce"`
+		Tx    json.RawMessage `json:"tx"`
 	}{}
 
 	err := json.Unmarshal(data, &carrier)
 	if err != nil {
-		return "", nil, err
+		return transaction.ID{}, nil, err
+	}
+
+	if carrier.TxID == "" {
+		return transaction.ID{}, nil, errors.New("transaction has no txID")
+	}
+	if len(carrier.Nonce) == 0 {
+		return transaction.ID{}, nil,
+			errors.New("transaction has no nonce; recreate it with this version of fxconfig")
 	}
 
 	var tx applicationpb.Tx
 	err = protojson.Unmarshal(carrier.Tx, &tx)
 	if err != nil {
-		return "", nil, err
+		return transaction.ID{}, nil, err
 	}
 
-	txID := carrier.TxID
-	return txID, &tx, nil
+	return transaction.ID{TxID: carrier.TxID, Nonce: carrier.Nonce}, &tx, nil
 }

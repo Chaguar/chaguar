@@ -18,6 +18,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/config"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
 
 // OrdererClient provides a gRPC client for submitting transactions to the Fabric-X ordering service.
@@ -58,10 +59,10 @@ func (oc *OrdererClient) Close() error {
 func (oc *OrdererClient) Broadcast(
 	ctx context.Context,
 	signer msp.SigningIdentity,
-	txID string,
+	id transaction.ID,
 	tx *applicationpb.Tx,
 ) error {
-	env, err := oc.createSignedEnvelope(signer, txID, tx)
+	env, err := oc.createSignedEnvelope(signer, id, tx)
 	if err != nil {
 		return err
 	}
@@ -105,19 +106,26 @@ func (oc *OrdererClient) send(ctx context.Context, env *cb.Envelope) error {
 // The envelope contains the channel header, signature header, and transaction payload.
 func (oc *OrdererClient) createSignedEnvelope(
 	signer msp.SigningIdentity,
-	txID string,
+	id transaction.ID,
 	tx *applicationpb.Tx,
 ) (*cb.Envelope, error) {
 	if signer == nil {
 		return nil, errors.New("require Signer")
 	}
+	creator, err := signer.Serialize()
+	if err != nil {
+		return nil, fmt.Errorf("cannot serialize signer: %w", err)
+	}
+	if err = id.VerifyCreator(creator); err != nil {
+		return nil, err
+	}
 
-	signatureHdr := protoutil.NewSignatureHeaderOrPanic(signer)
+	signatureHdr := &cb.SignatureHeader{Creator: creator, Nonce: id.Nonce}
 
 	// prepare transaction submission
 	// create signed envelope
 	channelHdr := protoutil.MakeChannelHeader(cb.HeaderType_MESSAGE, 0, oc.cfg.Channel, 0)
-	channelHdr.TxId = txID
+	channelHdr.TxId = id.TxID
 
 	payloadHdr := protoutil.MakePayloadHeader(channelHdr, signatureHdr)
 	txBytes := protoutil.MarshalOrPanic(tx)

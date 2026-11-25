@@ -10,6 +10,7 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/msp"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
 
 // MspProvider supplies signing identities for transaction authentication.
@@ -23,7 +24,7 @@ type MspProvider interface {
 // OrdererClient submits transactions to the ordering service.
 type OrdererClient interface {
 	// Broadcast sends a signed transaction to the ordering service.
-	Broadcast(ctx context.Context, signer msp.SigningIdentity, txID string, tx *applicationpb.Tx) error
+	Broadcast(ctx context.Context, signer msp.SigningIdentity, id transaction.ID, tx *applicationpb.Tx) error
 	// Close releases resources held by the client.
 	Close() error
 }

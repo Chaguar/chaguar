@@ -28,17 +28,25 @@ func (d *AdminApp) CreateNamespace(ctx context.Context, input *DeployNamespaceIn
 		return nil, err
 	}
 
+	// The txID binds the creator's identity, so the creator must also submit the transaction.
+	sid, err := d.MspProvider.Get()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get signing identity: %w", err)
+	}
+	creator, err := sid.Serialize()
+	if err != nil {
+		return nil, fmt.Errorf("cannot serialize signing identity: %w", err)
+	}
+
 	configVersion, err := d.configVersion(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get channel config version from query service: %w", err)
 	}
 
-	out := &DeployNamespaceOutput{
-		TxID: transaction.GenerateTxID(),
-		Tx:   transaction.CreateNamespacesTx(nsPolicy, input.NsID, input.Version, configVersion),
-	}
-
-	return out, nil
+	return &DeployNamespaceOutput{
+		ID: transaction.GenerateTxID(creator),
+		Tx: transaction.CreateNamespacesTx(nsPolicy, input.NsID, input.Version, configVersion),
+	}, nil
 }
 
 // configVersion fetches the latest committed channel config version from the query service.

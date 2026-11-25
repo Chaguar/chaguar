@@ -18,7 +18,10 @@ import (
 	"github.com/hyperledger/fabric-x-common/api/committerpb"
 
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/cli/v1/cliio"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
+
+var testSubmitID = transaction.ID{TxID: "tx-123", Nonce: []byte("nonce")}
 
 func TestNewTxSubmitCommand(t *testing.T) {
 	t.Parallel()
@@ -38,7 +41,7 @@ func TestTxSubmitCommand_Submit(t *testing.T) {
 	txFile := writeTxFile(t, "tx-123", &applicationpb.Tx{})
 
 	mockApp := &testApp{}
-	mockApp.On("SubmitTransaction", mock.Anything, "tx-123", mock.AnythingOfType("*applicationpb.Tx")).
+	mockApp.On("SubmitTransaction", mock.Anything, testSubmitID, mock.AnythingOfType("*applicationpb.Tx")).
 		Return(nil)
 
 	ctx := &CLIContext{
@@ -59,7 +62,7 @@ func TestTxSubmitCommand_SubmitWithWait(t *testing.T) {
 	txFile := writeTxFile(t, "tx-123", &applicationpb.Tx{})
 
 	mockApp := &testApp{}
-	mockApp.On("SubmitTransactionWithWait", mock.Anything, "tx-123", mock.AnythingOfType("*applicationpb.Tx")).
+	mockApp.On("SubmitTransactionWithWait", mock.Anything, testSubmitID, mock.AnythingOfType("*applicationpb.Tx")).
 		Return(int(committerpb.Status_COMMITTED), nil)
 
 	var outBuf bytes.Buffer
@@ -84,7 +87,7 @@ func TestTxSubmitCommand_SubmitWithWaitFailed(t *testing.T) {
 	txFile := writeTxFile(t, "tx-123", &applicationpb.Tx{})
 
 	mockApp := &testApp{}
-	mockApp.On("SubmitTransactionWithWait", mock.Anything, "tx-123", mock.AnythingOfType("*applicationpb.Tx")).
+	mockApp.On("SubmitTransactionWithWait", mock.Anything, testSubmitID, mock.AnythingOfType("*applicationpb.Tx")).
 		Return(int(committerpb.Status_ABORTED_SIGNATURE_INVALID), nil)
 
 	var outBuf bytes.Buffer
@@ -111,7 +114,7 @@ func TestTxSubmitCommand_AppError(t *testing.T) {
 	txFile := writeTxFile(t, "tx-123", &applicationpb.Tx{})
 
 	mockApp := &testApp{}
-	mockApp.On("SubmitTransaction", mock.Anything, "tx-123", mock.AnythingOfType("*applicationpb.Tx")).
+	mockApp.On("SubmitTransaction", mock.Anything, testSubmitID, mock.AnythingOfType("*applicationpb.Tx")).
 		Return(errors.New("submit failed"))
 
 	ctx := &CLIContext{

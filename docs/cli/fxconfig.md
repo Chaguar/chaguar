@@ -125,6 +125,8 @@ Transaction Lifecycle Flags:
 
 The query service must be configured: the transaction is built against the
 current channel config version.
+The MSP must be configured too, even without --endorse: the txID is derived
+from this identity, so the same identity must later submit the transaction.
 
 Examples:
   # Create namespace with single org policy (save to file)
@@ -207,6 +209,8 @@ specify doesn't match the current version, the update will fail.
 The query service must be configured: the transaction is built against the
 current channel config version. With --wait, the command exits non-zero if
 the transaction is not committed.
+The MSP must be configured too, even without --endorse: the txID is derived
+from this identity, so the same identity must later submit the transaction.
 
 Examples:
   # Update namespace policy (check version first with 'list')
@@ -259,7 +263,8 @@ Multi-Organization Workflow:
   2. Org1 endorses: fxconfig tx endorse tx.json --output tx_org1.json
   3. Org2 endorses: fxconfig tx endorse tx.json --output tx_org2.json
   4. Merge endorsements: fxconfig tx merge tx_org1.json tx_org2.json --output merged.json
-  5. Submit: fxconfig tx submit merged.json --wait
+  5. Org1 submits: fxconfig tx submit merged.json --wait
+     (only the identity that created the transaction can submit it)
 
 Usage:
   fxconfig tx [command]
@@ -360,6 +365,9 @@ Submit an endorsed transaction to the Fabric-X ordering service.
 The transaction must have sufficient endorsements to satisfy its endorsement
 policy. Use 'fxconfig tx merge' to combine endorsements from multiple
 organizations before submission.
+
+The transaction must be submitted with the same identity that created it:
+its txID is derived from the creator identity and a nonce stored in the file.
 
 Status Codes (with --wait):
   0 - Transaction successfully committed

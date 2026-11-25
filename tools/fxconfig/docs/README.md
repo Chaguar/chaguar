@@ -225,6 +225,7 @@ fxconfig namespace list
 # Org1: Create transaction
 fxconfig namespace create hello \
   --policy="AND('Org1MSP.member', 'Org2MSP.member')" \
+  --config=org1_config.yaml \
   --output=hello.json
 
 # Send hello.json to Org1 and Org2 via external secure channel
@@ -246,8 +247,9 @@ fxconfig tx merge \
   hello_org1.json hello_org2.json \
   --output=hello_endorsed.json
 
-# Either org: Submit to network
-fxconfig tx submit hello_endorsed.json
+# Org1: Submit to network (only the identity that created the transaction can submit it,
+# because its txID is derived from the creator identity)
+fxconfig tx submit hello_endorsed.json --config=org1_config.yaml
 ```
 
 ### Update Namespace

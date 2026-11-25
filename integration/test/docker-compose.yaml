@@ -86,7 +86,7 @@ services:
   #   2114 = Sidecar monitoring (Prometheus metrics)
   #   2116 = VC monitoring (Prometheus metrics, used for verification)
   committer:
-    image: ${COMMITTER_IMAGE:-docker.io/hyperledger/committer-test-node}
+    image: ${COMMITTER_IMAGE:-localhost/committer-test-node}
     container_name: committer
     command: [ "run", "db", "init-db", "committer" ]
     volumes:
@@ -123,7 +123,7 @@ services:
   # The loadgen exits with code 1 on normal shutdown ("context canceled").
   # This is expected — run-e2e.sh tolerates this exit code.
   loadgen:
-    image: ${LOADGEN_IMAGE:-docker.io/hyperledger/chaguar-loadgen}
+    image: ${LOADGEN_IMAGE:-localhost/chaguar-loadgen}
     container_name: loadgen
     command: [ "start", "--config", "/config/loadgen.yaml" ]
     volumes:

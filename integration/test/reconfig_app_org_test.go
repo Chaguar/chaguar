@@ -45,8 +45,8 @@ import (
 )
 
 const (
-	defaultOrdererImage           = "hyperledger/arma-4p1s:main"
-	defaultCommitterTestNodeImage = "hyperledger/committer-test-node:main"
+	defaultOrdererImage           = "localhost/arma-4p1s:main"
+	defaultCommitterTestNodeImage = "localhost/committer-test-node:main"
 )
 
 func envOrDefault(key, fallback string) string {

@@ -200,7 +200,7 @@ ORDERER_DOCKERFILE="${ORDERER_DIR}/examples/all-in-one/Dockerfile"
 [ -f "${ORDERER_DOCKERFILE}" ] || ORDERER_DOCKERFILE="${ORDERER_DIR}/node/examples/all-in-one/Dockerfile"
 docker build -t "localhost/${ORDERER_IMAGE_NAME}" -f "${ORDERER_DOCKERFILE}" "${ORDERER_DIR}"
 # Tag with the exact name run-e2e.sh resolves from refs.conf, so no pull is needed.
-ORDERER_IMAGE="docker.io/hyperledger/${ORDERER_IMAGE_NAME}:${ORDERER_REF}"
+ORDERER_IMAGE="localhost/${ORDERER_IMAGE_NAME}:${ORDERER_REF}"
 docker tag "localhost/${ORDERER_IMAGE_NAME}" "${ORDERER_IMAGE}"
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -214,10 +214,11 @@ COMMITTER_DIR="${BUILD_DIR}/committer"
 checkout_source "${COMMITTER_REPO}" "${COMMITTER_REF}" "${COMMITTER_DIR}" "${COMMITTER_LOCAL_PATH:-}" "committer"
 
 echo "Building ${COMMITTER_IMAGE_NAME} image from ${COMMITTER_DIR}..."
-make -C "${COMMITTER_DIR}" build-image-test-node
-# build-image-test-node creates docker.io/hyperledger/${COMMITTER_IMAGE_NAME} locally.
+# Override the committer's image_namespace so the image is tagged
+# localhost/${COMMITTER_IMAGE_NAME}:latest, whatever namespace the ref defaults to.
+make -C "${COMMITTER_DIR}" build-image-test-node image_namespace=localhost
 # Tag with refs.conf-derived tag expected by run-e2e.sh.
-COMMITTER_IMAGE_BASE="docker.io/hyperledger/${COMMITTER_IMAGE_NAME}"
+COMMITTER_IMAGE_BASE="localhost/${COMMITTER_IMAGE_NAME}"
 COMMITTER_IMAGE="${COMMITTER_IMAGE_BASE}:${COMMITTER_REF}"
 docker tag "${COMMITTER_IMAGE_BASE}" "${COMMITTER_IMAGE}"
 
@@ -226,7 +227,7 @@ docker tag "${COMMITTER_IMAGE_BASE}" "${COMMITTER_IMAGE}"
 # standalone loadgen image, so build it explicitly.
 LOADGEN_IMAGE=""
 if [ "${ENABLE_LOADGEN}" = "true" ]; then
-  LOADGEN_IMAGE_BASE="docker.io/hyperledger/${LOADGEN_IMAGE_NAME}"
+  LOADGEN_IMAGE_BASE="localhost/${LOADGEN_IMAGE_NAME}"
   LOADGEN_IMAGE="${LOADGEN_IMAGE_BASE}:${COMMITTER_REF}"
   LOADGEN_BUILD_ARCH="${LOADGEN_BUILD_ARCH:-$(go env GOARCH)}"
 

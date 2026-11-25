@@ -115,9 +115,9 @@ SKIP_CLEANUP_PROMPT=1 ./run-e2e.sh
 
 | Variable | Default | Description |
 |---|---|---|
-| `ORDERER_IMAGE` | `docker.io/hyperledger/${ORDERER_IMAGE_NAME}:${ORDERER_REF}` | Resolved from `refs.conf` |
-| `COMMITTER_IMAGE` | `docker.io/hyperledger/${COMMITTER_IMAGE_NAME}:${COMMITTER_REF}` | Resolved from `refs.conf` |
-| `LOADGEN_IMAGE` | `docker.io/hyperledger/chaguar-loadgen:${COMMITTER_REF}` | Versioned with `COMMITTER_REF` |
+| `ORDERER_IMAGE` | `localhost/${ORDERER_IMAGE_NAME}:${ORDERER_REF}` | Resolved from `refs.conf` |
+| `COMMITTER_IMAGE` | `localhost/${COMMITTER_IMAGE_NAME}:${COMMITTER_REF}` | Resolved from `refs.conf` |
+| `LOADGEN_IMAGE` | `localhost/chaguar-loadgen:${COMMITTER_REF}` | Versioned with `COMMITTER_REF` |
 | `CHAGUAR_BIN` | `integration/test/.build/chaguar/bin` | Built by `build-e2e.sh` |
 | `EXPLORER_IMAGE` | `localhost/chaguar-block-explorer:${EXPLORER_REF}` | Built locally by `build-e2e.sh` |
 

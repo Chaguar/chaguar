@@ -482,6 +482,7 @@ config_group:                        # → Application/groups/<name>
 The command leaves the block unchanged if:
 
 - `peer2.yaml` cannot be parsed, has no `name` or no `config_group`, or has a key other than these two.
+- The `name` is not a string, or the `config_group` is not a map.
 - A key of `config_group` is not a field of the block structure.
 - A certificate or CRL file can't be read, or doesn't hold what its field needs (see
   **Certificates**).
@@ -500,11 +501,21 @@ Remove an application organization.
 fxadmin modify app remove peer2 --block next.pb
 ```
 
+The command removes the org's whole config group (`channel_group.groups.Application.groups.<org>`):
+its MSP, its policies and every other value it holds. Nothing else in the block changes.
+
 **Arguments**
 
-| Argument | Required | Description                             |
-|----------| :------: |-----------------------------------------|
-| `<org>` | yes | Application organization name to remove |
+| Argument | Required | Description                                       |
+|----------| :------: |---------------------------------------------------|
+| `<org>` | yes | The org's name under `Application`, not its MSP ID |
+
+**When the command fails**
+
+The command leaves the block unchanged if:
+
+- The block has no `Application` group, or no org named `<org>` in it.
+- The edited config is not a valid channel config.
 
 ---
 

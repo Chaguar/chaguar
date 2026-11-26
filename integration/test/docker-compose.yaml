@@ -41,7 +41,7 @@ services:
   #   60x4 = batcher    (internal: batches TXs for consensus)
   #   60x5 = consenter  (internal: SmartBFT consensus)
   arma:
-    image: ${ORDERER_IMAGE:-localhost/arma-4p1s}
+    image: ${ORDERER_IMAGE:?set by run-e2e.sh or run-reconfig-test.sh}
     container_name: arma
     volumes:
       # Pre-generated artifacts: crypto material, configs, genesis block
@@ -86,7 +86,7 @@ services:
   #   2114 = Sidecar monitoring (Prometheus metrics)
   #   2116 = VC monitoring (Prometheus metrics, used for verification)
   committer:
-    image: ${COMMITTER_IMAGE:-localhost/committer-test-node}
+    image: ${COMMITTER_IMAGE:?set by run-e2e.sh or run-reconfig-test.sh}
     container_name: committer
     command: [ "run", "db", "init-db", "committer" ]
     volumes:
@@ -123,7 +123,7 @@ services:
   # The loadgen exits with code 1 on normal shutdown ("context canceled").
   # This is expected — run-e2e.sh tolerates this exit code.
   loadgen:
-    image: ${LOADGEN_IMAGE:-localhost/chaguar-loadgen}
+    image: ${LOADGEN_IMAGE:?set by run-e2e.sh}
     container_name: loadgen
     command: [ "start", "--config", "/config/loadgen.yaml" ]
     volumes:
@@ -165,7 +165,7 @@ services:
   # Port mapping:
   #   8080 = REST API + Swagger UI (/docs) + health check (/healthz)
   explorer:
-    image: ${EXPLORER_IMAGE:-localhost/chaguar-block-explorer}
+    image: ${EXPLORER_IMAGE:?set by run-e2e.sh}
     container_name: explorer
     # start.sh ignores CMD args; it reads EXPLORER_CONFIG_PATH (default /home/explorer/config.yaml).
     environment:

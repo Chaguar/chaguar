@@ -96,6 +96,11 @@ for arg in "$@"; do
     echo "Refs are loaded from refs.conf by default and can be overridden via CLI."
     exit 0
     ;;
+  --fabric-x-*)
+    old_flag="${arg%%=*}"
+    echo "ERROR: ${old_flag} was renamed to --chaguar-${old_flag#--fabric-x-} (Fabric-X is now Chaguar)."
+    exit 1
+    ;;
   *)
     echo "Unknown argument: ${arg}"
     exit 1
@@ -216,6 +221,9 @@ checkout_source "${COMMITTER_REPO}" "${COMMITTER_REF}" "${COMMITTER_DIR}" "${COM
 echo "Building ${COMMITTER_IMAGE_NAME} image from ${COMMITTER_DIR}..."
 # Override the committer's image_namespace so the image is tagged
 # localhost/${COMMITTER_IMAGE_NAME}:latest, whatever namespace the ref defaults to.
+# Remove the Makefile's stamp file first: a --committer-local-path copy may carry a
+# stale .build/test-node-image, which would make make skip the docker build.
+rm -f "${COMMITTER_DIR}/.build/test-node-image"
 make -C "${COMMITTER_DIR}" build-image-test-node image_namespace=localhost
 # Tag with refs.conf-derived tag expected by run-e2e.sh.
 COMMITTER_IMAGE_BASE="localhost/${COMMITTER_IMAGE_NAME}"

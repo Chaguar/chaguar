@@ -95,7 +95,7 @@ However, Fabric has performance limitations (~2,000 TPS) and a rigid chaincode
 programming model, making it unsuitable for high-throughput use cases like
 tokenization. Chaguar addresses these limitations.
 
-## Hyperledger Chaguar
+## Chaguar
 
 Chaguar is built on Fabric's foundations but evolved for next-generation
 enterprise requirements. It achieves 200,000+ TPS through architectural

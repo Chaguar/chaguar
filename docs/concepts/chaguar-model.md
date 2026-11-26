@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# Hyperledger Chaguar Model
+# Chaguar Model
 
 ## Overview
 

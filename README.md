@@ -108,6 +108,18 @@ To set up the network yourself, follow the tutorial in the [Fabric-X Ansible Col
 The current `fxconfig` needs committer v1.0.6 or later for `--wait` and other sidecar calls.
 Older committers reject them with `Unimplemented: unknown service committerpb.SidecarService`.
 
+### Migrating from Fabric-X
+
+Release artifacts and CI inputs were renamed together with the project. Artifacts of earlier releases stay under their old names.
+
+| What | Fabric-X | Chaguar |
+| :--- | :------- | :------ |
+| Tools container image | `docker.io/hyperledger/fabric-x-tools`, `ghcr.io/hyperledger/fabric-x-tools` | `ghcr.io/chaguar/chaguar-tools` (no longer published to Docker Hub) |
+| Release tarballs | `fabric-x-tools-<os>-<arch>-<version>.tar.gz` | `chaguar-tools-<os>-<arch>-<version>.tar.gz` |
+| E2E workflow input (`e2e.yml`, `reconfig-app-org.yml`) | `fabric-x-ref` | `chaguar-ref` |
+| `integration/test/build-e2e.sh` flags | `--fabric-x-ref`, `--fabric-x-repo`, `--fabric-x-local-path` | `--chaguar-ref`, `--chaguar-repo`, `--chaguar-local-path` |
+| E2E variables | `FABRIC_X_REF`, `FABRIC_X_REPO`, `FABRIC_X_BIN`, ... | `CHAGUAR_REF`, `CHAGUAR_REPO`, `CHAGUAR_BIN`, ... |
+
 ## Chaguar workshop series
 
 - [Introduction into Chaguar (recorded as Fabric-X)](https://www.youtube.com/live/gdQh-mNKSKA)

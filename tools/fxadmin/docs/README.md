@@ -4,10 +4,10 @@ Copyright IBM Corp. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# fxadmin — Fabric-X Reconfiguration Admin CLI
+# fxadmin — Chaguar Reconfiguration Admin CLI
 
 `fxadmin` is a command-line tool for **administering the configuration of
-Fabric-X**. It lets administrators pull the
+Chaguar**. It lets administrators pull the
 current configuration from the running network, edit it, collect the required
 admin endorsements, wrap the result into a submittable transaction, and
 broadcast that transaction to the ordering service.

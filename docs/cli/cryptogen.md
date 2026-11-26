@@ -6,7 +6,7 @@
 
 # cryptogen
 
-The `cryptogen` command generates sample X.509 cryptographic material and MSP directory structures for development and test Fabric-X networks.
+The `cryptogen` command generates sample X.509 cryptographic material and MSP directory structures for development and test Chaguar networks.
 
 ## cryptogen help
 ```
@@ -96,7 +96,7 @@ Flags:
 ## Related commands
 
 - [`configtxgen`](configtxgen.md) consumes MSP definitions when generating channel configuration artifacts.
-- [`fxconfig`](fxconfig.md) uses local MSP material when signing Fabric-X configuration transactions.
+- [`fxconfig`](fxconfig.md) uses local MSP material when signing Chaguar configuration transactions.
 
 ---
 

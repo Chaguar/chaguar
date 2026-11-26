@@ -1,15 +1,15 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# End-to-End Transaction Flow in Fabric-X
+# End-to-End Transaction Flow in Chaguar
 
 ## Overview
 
-Fabric-X follows execute-order-validate-commit. Applications create endorsed transactions, Arma orders transaction bytes into blocks, and the committer pipeline validates authorization and state before committing results.
+Chaguar follows execute-order-validate-commit. Applications create endorsed transactions, Arma orders transaction bytes into blocks, and the committer pipeline validates authorization and state before committing results.
 
 The flow has two important read/status loops. Before submission, FSC nodes or custom endorsers may read committed state and policies through the Query Service to build endorsed transaction data. After ordering and commit processing, clients learn final status from the committer and can query committed state through the same database-backed read path.
 
 ## Flow Diagram
 
-At a high level, Fabric-X starts with application execution outside the orderer. A client invokes an FSC view or custom endorser, which reads committed public state, policies, and configuration through the Query Service. Endorsers may also read local private databases when endorsement logic depends on privacy-preserving data that should not be exposed through the shared state path.
+At a high level, Chaguar starts with application execution outside the orderer. A client invokes an FSC view or custom endorser, which reads committed public state, policies, and configuration through the Query Service. Endorsers may also read local private databases when endorsement logic depends on privacy-preserving data that should not be exposed through the shared state path.
 
 The endorsed transaction is then submitted to the Arma orderer nodes. Arma orders transaction bytes into blocks; it does not evaluate endorsement policies, run MVCC checks, or decide whether a transaction changes application state. Ordering gives the transaction a deterministic block position and makes the block available to committers.
 
@@ -42,7 +42,7 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
-    title Full Fabric-X Transaction Flow
+    title Full Chaguar Transaction Flow
     participant Client as Client App
     participant FSC as FSC View / Custom Endorser
     participant QS as Query Service
@@ -159,13 +159,13 @@ sequenceDiagram
     Initiator-->>Client: Endorsed transaction envelope
 ```
 
-**Phase 1: Execute / Endorse.** Application logic runs before ordering. In Fabric-X this is commonly implemented with Fabric Smart Client views or another application-level endorsement flow.
+**Phase 1: Execute / Endorse.** Application logic runs before ordering. In Chaguar this is commonly implemented with Fabric Smart Client views or another application-level endorsement flow.
 
 The signing sequence shows four organizations participating before the transaction reaches the orderer. Org1 drives the FSC initiator view, Org1 and Org2 can endorse through FSC responder views, and Org3 and Org4 can represent custom endorser services. The resulting transaction can mix endorsement mechanisms as long as final signatures satisfy the namespace policy checked later by the committer.
 
 FSC views support interactive protocols. The initiator can prepare proposal inputs, contact other FSC nodes, exchange application messages, and collect signatures over the proposed read/write effects. Org1 generates the initial read/write set. Other endorsers verify that read/write set by reading committed state and policy through the Query Service, and each organization may also read a local private database for privacy-preserving endorsement inputs.
 
-Custom endorsers model endorsement logic as external services. They can implement domain-specific validation or cryptographic signing outside FSC while still returning Fabric-X-compatible endorsement material. The diagram labels these calls as gRPC because custom endorsers are service-style participants, not local view invocations.
+Custom endorsers model endorsement logic as external services. They can implement domain-specific validation or cryptographic signing outside FSC while still returning Chaguar-compatible endorsement material. The diagram labels these calls as gRPC because custom endorsers are service-style participants, not local view invocations.
 
 During this phase, an FSC node or custom endorser executes business logic and may read current committed state through the Query Service. The read results become part of the transaction's read set or otherwise influence the proposed write set. The result is a transaction with an identifier, namespace read/write information, endorsements or signatures for affected namespaces, and data needed by the committer to verify policies and validate reads.
 
@@ -329,13 +329,13 @@ A transaction can therefore be ordered but not committed. Applications should wa
 
 ## See Also
 
-- [Fabric-X Model](fabric-x-model.md)
+- [Chaguar Model](chaguar-model.md)
 - [Arma Ordering](../orderer/docs/architecture.md)
 - [Committer Pipeline](../committer/docs/architecture.md)
 - [Dependency Graph](../committer/docs/coordinator.md)
-- [Fabric-X Committer Architecture](https://hyperledger.github.io/fabric-x-committer/architecture/)
-- [Sidecar](https://hyperledger.github.io/fabric-x-committer/sidecar/)
-- [Coordinator](https://hyperledger.github.io/fabric-x-committer/coordinator/)
-- [Verification Service](https://hyperledger.github.io/fabric-x-committer/verification-service/)
-- [Validator-Committer](https://hyperledger.github.io/fabric-x-committer/validator-committer/)
-- [Query Service](https://hyperledger.github.io/fabric-x-committer/query-service/)
+- [Chaguar Committer Architecture](https://chaguar.github.io/committer/architecture/)
+- [Sidecar](https://chaguar.github.io/committer/sidecar/)
+- [Coordinator](https://chaguar.github.io/committer/coordinator/)
+- [Verification Service](https://chaguar.github.io/committer/verification-service/)
+- [Validator-Committer](https://chaguar.github.io/committer/validator-committer/)
+- [Query Service](https://chaguar.github.io/committer/query-service/)

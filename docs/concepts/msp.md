@@ -3,7 +3,7 @@
 
 ## Overview
 
-The Membership Service Provider (MSP) defines how identities are represented, validated, and mapped to policy principals. Fabric-X uses Fabric-compatible MSP validation from `fabric-x-common/msp` and Fabric-compatible policy structures where MSP rules are used.
+The Membership Service Provider (MSP) defines how identities are represented, validated, and mapped to policy principals. Chaguar uses Fabric-compatible MSP validation from `Chaguar/common/msp` and Fabric-compatible policy structures where MSP rules are used.
 
 An MSP is the bridge between certificates and governance. It tells the network which certificate authorities are trusted for an organization, which certificates are administrators, how roles are classified, and how signatures are verified during policy evaluation.
 
@@ -79,7 +79,7 @@ Examples:
 
 During policy evaluation, signatures are matched to identities, identities are validated by MSPs, and those identities are checked against principals in the policy tree.
 
-## MSPs in Fabric-X Policies
+## MSPs in Chaguar Policies
 
 Namespace MSP rules use Fabric `SignaturePolicyEnvelope` structures. During verification:
 
@@ -104,6 +104,6 @@ This lets namespace policy express multi-organization governance such as "Org1 a
 
 - [Identity Management](identity.md)
 - [Endorsement and Other Policies](policies/policies.md)
-- [Namespace Policy](https://hyperledger.github.io/fabric-x-committer/namespace-policy/)
-- `fabric-x-common/msp`
-- `fabric-x-common/common/policies`
+- [Namespace Policy](https://chaguar.github.io/committer/namespace-policy/)
+- `Chaguar/common/msp`
+- `Chaguar/common/common/policies`

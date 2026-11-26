@@ -3,9 +3,9 @@
 
 ## Overview
 
-A namespace is the Fabric-X unit for logical state isolation and endorsement policy binding. Fabric-X uses a single channel model; namespaces separate application state inside that channel.
+A namespace is the Chaguar unit for logical state isolation and endorsement policy binding. Chaguar uses a single channel model; namespaces separate application state inside that channel.
 
-Canonical policy details live in [Namespace Policy](https://hyperledger.github.io/fabric-x-committer/namespace-policy/).
+Canonical policy details live in [Namespace Policy](https://chaguar.github.io/committer/namespace-policy/).
 
 ## What a Namespace Provides
 
@@ -16,7 +16,7 @@ Canonical policy details live in [Namespace Policy](https://hyperledger.github.i
 
 ## Namespace Policies
 
-Every namespace that can be modified must have a namespace policy. Fabric-X supports two policy forms:
+Every namespace that can be modified must have a namespace policy. Chaguar supports two policy forms:
 
 | Policy type | Purpose |
 | --- | --- |
@@ -27,7 +27,7 @@ Policies are stored and propagated through the committer path. The Coordinator s
 
 ## Single Channel Model
 
-Fabric-X does not use Fabric-style multi-channel isolation. Use namespaces to separate application domains while keeping one ordered transaction stream.
+Chaguar does not use Fabric-style multi-channel isolation. Use namespaces to separate application domains while keeping one ordered transaction stream.
 
 ## Boundaries
 
@@ -39,7 +39,7 @@ This concept page does not define a namespace-management CLI. Use source reposit
 
 ## See Also
 
-- [Namespace Policy](https://hyperledger.github.io/fabric-x-committer/namespace-policy/)
+- [Namespace Policy](https://chaguar.github.io/committer/namespace-policy/)
 - [Policies](policies/policies.md)
 - [Validator-Committer](../committer/docs/validator-committer.md)
 - [Committer Pipeline](../committer/docs/architecture.md)

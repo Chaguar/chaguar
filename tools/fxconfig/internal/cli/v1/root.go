@@ -24,10 +24,10 @@ func NewRootCommand(cliCtx *CLIContext, buildApp func(cfg *config.Config) (app.A
 	var cfgFile string
 	rootCmd := &cobra.Command{
 		Use:   "fxconfig",
-		Short: "CLI tool for managing Fabric-X namespaces and transactions",
-		Long: `fxconfig is a command-line tool for managing Fabric-X namespaces and transactions.
+		Short: "CLI tool for managing Chaguar namespaces and transactions",
+		Long: `fxconfig is a command-line tool for managing Chaguar namespaces and transactions.
 
-Namespaces in Fabric-X define isolated execution environments with their own
+Namespaces in Chaguar define isolated execution environments with their own
 endorsement policies. This tool allows you to:
   • Create and update namespaces with custom endorsement policies
   • Query installed namespaces and their configurations

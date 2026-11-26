@@ -21,7 +21,7 @@ import (
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
 
-// OrdererClient provides a gRPC client for submitting transactions to the Fabric-X ordering service.
+// OrdererClient provides a gRPC client for submitting transactions to the Chaguar ordering service.
 // It handles connection management, TLS configuration, and transaction envelope creation.
 type OrdererClient struct {
 	cfg    config.OrdererConfig

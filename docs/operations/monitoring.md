@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # Monitoring and Metrics Guide
 
-This guide covers monitoring Fabric-X components using Prometheus.
+This guide covers monitoring Chaguar components using Prometheus.
 
 ## Prometheus Setup
 

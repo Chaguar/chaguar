@@ -25,7 +25,7 @@ Committer service that orchestrates parallel validation.
 Service that signs transactions using FSC.
 
 ### FSC (Fabric Smart Client)
-Endorsement framework replacing chaincodes in Fabric-X.
+Endorsement framework replacing chaincodes in Chaguar.
 
 ### Namespace
 Logical isolation unit within a single channel.

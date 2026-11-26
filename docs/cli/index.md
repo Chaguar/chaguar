@@ -1,11 +1,11 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# Fabric-X CLI Reference
+# Chaguar CLI Reference
 
-The Fabric-X Command-Line Interface (CLI) provides tools for managing, deploying, and operating Fabric-X networks.
+The Chaguar Command-Line Interface (CLI) provides tools for managing, deploying, and operating Chaguar networks.
 
 ## Overview
 
-Fabric-X includes the following CLI tools:
+Chaguar includes the following CLI tools:
 
 | Tool | Purpose | Primary Users |
 |------|---------|---------------|
@@ -21,10 +21,10 @@ Fabric-X includes the following CLI tools:
 
 | Component | Go Version |
 |-----------|------------|
-| fabric-x | 1.27.3+ |
-| fabric-x-committer | 1.27.3+ |
-| fabric-x-orderer | 1.27.3+ |
-| fabric-x-common | 1.27.3+ |
+| Chaguar/chaguar | 1.27.3+ |
+| Chaguar/committer | 1.27.3+ |
+| Chaguar/orderer | 1.27.3+ |
+| Chaguar/common | 1.27.3+ |
 
 ## Command Structure
 
@@ -230,7 +230,7 @@ Convert between configuration protobuf and JSON/YAML formats.
 
 ### cryptogen
 
-Generate cryptographic material for Fabric-X networks.
+Generate cryptographic material for Chaguar networks.
 
 **Commands:**
 

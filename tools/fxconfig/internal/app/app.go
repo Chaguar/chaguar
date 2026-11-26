@@ -4,7 +4,7 @@ Copyright IBM Corp. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-// Package app provides namespace lifecycle management for Fabric-X.
+// Package app provides namespace lifecycle management for Chaguar.
 // It handles creation, deployment, endorsement, and querying of namespaces.
 package app
 

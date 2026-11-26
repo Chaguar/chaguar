@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# Threshold Signatures in Fabric-X
+# Threshold Signatures in Chaguar
 
 ## Overview
 
-Threshold signatures enable a group of signers to collectively produce a single signature. Instead of requiring all participants to sign individually, any subset of size `t` or more from a group of `n` participants can generate a valid signature. This cryptographic primitive forms the foundation of Fabric-X's endorsement mechanism.
+Threshold signatures enable a group of signers to collectively produce a single signature. Instead of requiring all participants to sign individually, any subset of size `t` or more from a group of `n` participants can generate a valid signature. This cryptographic primitive forms the foundation of Chaguar's endorsement mechanism.
 
 ## What Are Threshold Signatures?
 
@@ -74,7 +74,7 @@ flowchart TB
 
 ## BLS Signature Aggregation
 
-Fabric-X uses **BLS (Boneh-Lynn-Shacham)** signatures for threshold operations. BLS provides unique properties essential for blockchain systems.
+Chaguar uses **BLS (Boneh-Lynn-Shacham)** signatures for threshold operations. BLS provides unique properties essential for blockchain systems.
 
 ### BLS Fundamentals
 
@@ -108,15 +108,15 @@ The signature size advantage of threshold signatures becomes dramatic as the num
 
 Verification speed represents another critical advantage of threshold signatures over traditional multi-signature approaches. When verifying k individual ECDSA signatures, the verifier must perform k separate pairing operations, one for each signature against its corresponding public key. This linear scaling creates a significant computational burden as the number of signers increases. Threshold signatures collapse this complexity to a single pairing operation. The verifier checks the aggregated signature against the aggregated public key in constant time, regardless of how many parties contributed to the signature. This O(1) verification complexity translates directly to faster block validation, reduced computational costs, and improved overall system throughput. The bandwidth savings compound this benefit, as threshold signatures require constant bandwidth rather than the O(k × signature_size) bandwidth demanded by traditional multi-signature schemes.
 
-## Usage in Fabric-X Endorsement
+## Usage in Chaguar Endorsement
 
 ### Endorsement Policy Integration
 
-Fabric-X replaces traditional endorsement policies with threshold-based validation, fundamentally restructuring how transactions gain approval within the network. Instead of requiring explicit signatures from specific named peers, the system configures a threshold policy where any t out of n designated endorsing peers can validate a transaction.
+Chaguar replaces traditional endorsement policies with threshold-based validation, fundamentally restructuring how transactions gain approval within the network. Instead of requiring explicit signatures from specific named peers, the system configures a threshold policy where any t out of n designated endorsing peers can validate a transaction.
 
 ### Transaction Endorsement Flow
 
-The endorsement flow in Fabric-X uses an **endorser service** at each peer that handles partial signature aggregation:
+The endorsement flow in Chaguar uses an **endorser service** at each peer that handles partial signature aggregation:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -240,9 +240,9 @@ Transaction Endorsement Flow:
 
 Endorsement policies specify threshold parameters through a structured configuration that defines the total number of endorsing peers and the required threshold. The configuration includes the threshold type designation, the total count n of endorsing peers authorized to participate, the threshold t representing the minimum number of partial signatures required, and the list of public key shares for all n participants. These public key shares are typically aggregated off-chain into a single public key that the orderer uses for verification, though the individual shares remain available for explicit verification if needed.
 
-### Benefits for Fabric-X
+### Benefits for Chaguar
 
-Threshold signatures deliver four primary benefits to the Fabric-X architecture. **Scalability** emerges as orderers verify exactly one signature regardless of how complex the endorsement policy becomes, whether requiring 3 out of 5 peers or 50 out of 100 peers. **Privacy** protects the identity of specific endorsing peers, as the aggregated signature reveals only that the threshold was met, not which peers participated. **Efficiency** manifests through reduced block sizes due to constant signature size and faster verification through single pairing operations. **Flexibility** allows network administrators to adjust threshold parameters without modifying the underlying verification logic, enabling dynamic policy changes as network conditions or trust relationships evolve.
+Threshold signatures deliver four primary benefits to the Chaguar architecture. **Scalability** emerges as orderers verify exactly one signature regardless of how complex the endorsement policy becomes, whether requiring 3 out of 5 peers or 50 out of 100 peers. **Privacy** protects the identity of specific endorsing peers, as the aggregated signature reveals only that the threshold was met, not which peers participated. **Efficiency** manifests through reduced block sizes due to constant signature size and faster verification through single pairing operations. **Flexibility** allows network administrators to adjust threshold parameters without modifying the underlying verification logic, enabling dynamic policy changes as network conditions or trust relationships evolve.
 
 ## Cryptographic Properties
 
@@ -252,7 +252,7 @@ Threshold signature schemes provide multiple layers of security guarantees essen
 
 ### BLS12-381 Parameters
 
-Fabric-X uses BLS12-381 curve for 128-bit security:
+Chaguar uses BLS12-381 curve for 128-bit security:
 
 ```
 Curve Parameters:
@@ -269,9 +269,9 @@ Public Key Size: 96 bytes (G₂ element)
 ```
 
 **Implementation Reference:**
-- BLS signature operations: `fabric-x-common/crypto/bls/`
-- MSP integration: `fabric-x-common/msp/`
-- Threshold signature aggregation: See `fabric-x-endorser` platform implementation
+- BLS signature operations: `Chaguar/common/crypto/bls/`
+- MSP integration: `Chaguar/common/msp/`
+- Threshold signature aggregation: See `Chaguar/endorser` platform implementation
 
 ### Security Comparison
 
@@ -297,4 +297,4 @@ Understanding failure modes helps design robust threshold signature implementati
 
 ## References
 
-For deeper exploration of threshold signatures and their cryptographic foundations, several key resources provide essential background. Boneh, Lynn, and Shacham's 2001 paper "Short Signatures from the Weil Pairing" introduced the BLS signature scheme that underpins modern threshold implementations. Shamir's seminal 1979 work "How to Share a Secret" established the secret sharing foundation that enables threshold key distribution. The BLS12-381 curve specification available at https://hackmd.io/@benjaminion/bls12-381 provides detailed parameters for the specific curve used in Fabric-X. Additional context on how threshold signatures integrate into the broader system architecture appears in the Fabric-X Architecture Documentation at `docs/architecture/overview.md`.
+For deeper exploration of threshold signatures and their cryptographic foundations, several key resources provide essential background. Boneh, Lynn, and Shacham's 2001 paper "Short Signatures from the Weil Pairing" introduced the BLS signature scheme that underpins modern threshold implementations. Shamir's seminal 1979 work "How to Share a Secret" established the secret sharing foundation that enables threshold key distribution. The BLS12-381 curve specification available at https://hackmd.io/@benjaminion/bls12-381 provides detailed parameters for the specific curve used in Chaguar. Additional context on how threshold signatures integrate into the broader system architecture appears in the Chaguar Architecture Documentation at `docs/architecture/overview.md`.

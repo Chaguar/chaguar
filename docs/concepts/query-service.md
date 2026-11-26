@@ -3,11 +3,11 @@
 
 ## Overview
 
-This page summarizes the Fabric-X read path. Canonical implementation details live in the public [Query Service](https://hyperledger.github.io/fabric-x-committer/query-service/) documentation.
+This page summarizes the Chaguar read path. Canonical implementation details live in the public [Query Service](https://chaguar.github.io/committer/query-service/) documentation.
 
-The Query Service provides read-only access to committed Fabric-X state. It is separate from the validation and commit pipeline.
+The Query Service provides read-only access to committed Chaguar state. It is separate from the validation and commit pipeline.
 
-Canonical implementation details live in [Query Service](https://hyperledger.github.io/fabric-x-committer/query-service/).
+Canonical implementation details live in [Query Service](https://chaguar.github.io/committer/query-service/).
 
 ## Responsibilities
 
@@ -33,6 +33,6 @@ flowchart LR
 
 ## See Also
 
-- [Query Service](https://hyperledger.github.io/fabric-x-committer/query-service/)
+- [Query Service](https://chaguar.github.io/committer/query-service/)
 - [Validator-Committer](../committer/docs/validator-committer.md)
 - [Ledger](ledger.md)

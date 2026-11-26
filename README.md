@@ -21,7 +21,7 @@ Chaguar proves that permissioned DLTs can be engineered for national-scale payme
 - [Chaguar Committer](https://github.com/Chaguar/committer) - is a post‑ordering transaction processing system built as microservices. [Docs](https://chaguar.github.io/committer/), [Issues](https://github.com/Chaguar/committer/issues)
 - [Chaguar Samples](https://github.com/Chaguar/samples) - is the official home repository for sample applications built on top of Chaguar.
 - [Chaguar EVM](https://github.com/Chaguar/evm) - makes Chaguar (and Fabric) compatible with the Ethereum ecosystem. [Docs](https://github.com/Chaguar/evm/blob/main/docs/ARCHITECTURE.md), [Issues](https://github.com/Chaguar/evm/issues)
-- [Fabric-X Ansible](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection) - is an Ansible collection for deploying Chaguar. [Docs](https://lf-decentralized-trust-labs.github.io/fabric-x-ansible-collection/), [Issues](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection/issues)
+- [Chaguar Ansible](https://github.com/Chaguar/ansible-collection) - is an Ansible collection for deploying Chaguar. [Docs](https://chaguar.github.io/ansible-collection/), [Issues](https://github.com/Chaguar/ansible-collection/issues)
 
 ## Architecture Overview
 
@@ -94,7 +94,7 @@ Code and more details can be found under [Chaguar Committer Github repository](h
 
 ## Run the network
 
-To set up the network yourself, follow the tutorial in the [Fabric-X Ansible Collection](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection) repository. It provides Ansible scripts with predefined inventories and playbooks for both local and remote cluster deployments, but you don't need to know Ansible to run them. Support for deploying a sample application will be added soon.
+To set up the network yourself, follow the tutorial in the [Chaguar Ansible Collection](https://github.com/Chaguar/ansible-collection) repository. It provides Ansible scripts with predefined inventories and playbooks for both local and remote cluster deployments, but you don't need to know Ansible to run them. Support for deploying a sample application will be added soon.
 
 ### Version compatibility matrix
 
@@ -126,7 +126,7 @@ Older committers reject them with `Unimplemented: unknown service committerpb.Si
 - [Chaguar Orderer](https://github.com/Chaguar/orderer) Github repository
 - [Panurus](https://github.com/LFDT-Panurus/panurus) and [Fabric-Smart-Client](https://github.com/hyperledger-labs/fabric-smart-client) Github repositories
 - [Chaguar Common](https://github.com/Chaguar/common) Github repository - contains new CLIs and protobuf, and code shared between the orderer and committer
-- [Fabric-X Ansible Collection](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection)
+- [Chaguar Ansible Collection](https://github.com/Chaguar/ansible-collection)
 - [Chaguar Client SDK](https://github.com/Chaguar/sdk/)
 - [Chaguar EVM](https://github.com/Chaguar/evm)
 - [Chaguar RFCs](https://github.com/Chaguar/rfcs) Github repository - contains request for comments (RFCs) in the Chaguar project
@@ -134,8 +134,8 @@ Older committers reject them with `Unimplemented: unknown service committerpb.Si
 ## Coming soon
 
 - [x] [Sample token application on top of Chaguar](https://github.com/Chaguar/samples)
-- [x] [Chaguar on Kubernetes](https://github.com/LF-Decentralized-Trust-labs/fabric-x-ansible-collection/blob/main/examples/README.md#kubernetes-inventories)
+- [x] [Chaguar on Kubernetes](https://github.com/Chaguar/ansible-collection/blob/main/examples/README.md#kubernetes-inventories)
 - [x] Chaguar on OpenShift
 - [ ] Chaguar Kubernetes operator
-- [x] [Chaguar blockchain explorer](https://github.com/LF-Decentralized-Trust-labs/fabric-x-block-explorer)
+- [x] [Chaguar blockchain explorer](https://github.com/Chaguar/block-explorer)
 - [x] [Fabric meets EVM](https://github.com/Chaguar/evm)

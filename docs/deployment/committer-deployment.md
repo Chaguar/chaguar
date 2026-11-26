@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 # Committer Pipeline Deployment
 
-This guide covers deployment of the Fabric-X Committer pipeline components.
+This guide covers deployment of the Chaguar Committer pipeline components.
 
 > **NOTE:** This document reflects the actual implementation. Previous versions contained significant inaccuracies including wrong ports and fictional features.
 
@@ -20,8 +20,8 @@ The Committer pipeline consists of five microservices:
 ## Build
 
 ```bash
-git clone https://github.com/hyperledger/fabric-x-committer.git
-cd fabric-x-committer
+git clone https://github.com/Chaguar/committer.git
+cd committer
 make build
 
 # Binary at: ./bin/committer
@@ -30,10 +30,10 @@ make build
 ## Database Setup
 
 ```bash
-docker network create fabric-x-net
+docker network create chaguar-net
 
 docker run -d \
-  --name fabric-x-db \
+  --name chaguar-db \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=postgres \

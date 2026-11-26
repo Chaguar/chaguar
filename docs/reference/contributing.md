@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-# Contributing to Fabric-X Documentation
+# Contributing to Chaguar Documentation
 
 ## Guidelines
 
@@ -58,7 +58,7 @@ mkdocs serve
 
 ### Building documentation
 
-The root `mkdocs.yml` builds the published Fabric-X documentation site.
+The root `mkdocs.yml` builds the published Chaguar documentation site.
 
 Install documentation dependencies:
 
@@ -75,10 +75,10 @@ mkdocs build
 For local component documentation development, keep sibling repositories next to this repository:
 
 ```text
-github.com/hyperledger/
-├── fabric-x
-├── fabric-x-orderer
-└── fabric-x-committer
+github.com/Chaguar/
+├── chaguar
+├── orderer
+└── committer
 ```
 
 Then build with the local override config:
@@ -87,7 +87,7 @@ Then build with the local override config:
 mkdocs build -f mkdocs.local.yml
 ```
 
-`mkdocs.local.yml` imports selected orderer and committer architecture docs from local sibling repositories using `mkdocs-multirepo-plugin` and local tags named `fabric-x-docs-local`.
+`mkdocs.local.yml` imports selected orderer and committer architecture docs from local sibling repositories using `mkdocs-multirepo-plugin` and local tags named `chaguar-docs-local`.
 
 Do not use `mkdocs.local.yml` for GitHub Pages or release builds. Published builds must use refs that exist in remote component repositories.
 

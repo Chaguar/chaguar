@@ -22,7 +22,9 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/msp"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/config"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
 
 // mockBroadcastStream implements grpc.BidiStreamingClient[cb.Envelope, ab.BroadcastResponse].
@@ -30,9 +32,13 @@ type mockBroadcastStream struct {
 	sendErr  error
 	recvResp *ab.BroadcastResponse
 	recvErr  error
+	sent     *cb.Envelope
 }
 
-func (m *mockBroadcastStream) Send(_ *cb.Envelope) error            { return m.sendErr }
+func (m *mockBroadcastStream) Send(env *cb.Envelope) error {
+	m.sent = env
+	return m.sendErr
+}
 func (m *mockBroadcastStream) Recv() (*ab.BroadcastResponse, error) { return m.recvResp, m.recvErr }
 func (*mockBroadcastStream) Header() (metadata.MD, error)           { return nil, nil }
 func (*mockBroadcastStream) Trailer() metadata.MD                   { return nil }
@@ -64,7 +70,17 @@ func (*mockAtomicBroadcastClient) Deliver(
 // testSigningIdentity is a minimal mock of msp.SigningIdentity.
 type testSigningIdentity struct {
 	signErr error
+	creator []byte // serialized identity; defaults to testCreator
 }
+
+var (
+	testCreator = []byte("test-creator")
+	testNonce   = []byte("test-nonce")
+	testTxID    = protoutil.ComputeTxID(testNonce, testCreator)
+	testID      = transaction.ID{TxID: testTxID, Nonce: testNonce}
+)
+
+const errWrongCreator = "created by a different identity"
 
 func (m *testSigningIdentity) Sign(_ []byte) ([]byte, error) {
 	if m.signErr != nil {
@@ -73,8 +89,13 @@ func (m *testSigningIdentity) Sign(_ []byte) ([]byte, error) {
 	return []byte("mock-sig"), nil
 }
 
-func (*testSigningIdentity) SerializeWithIDOfCert() ([]byte, error)         { return []byte{}, nil }
-func (*testSigningIdentity) Serialize() ([]byte, error)                     { return []byte{}, nil }
+func (*testSigningIdentity) SerializeWithIDOfCert() ([]byte, error) { return []byte{}, nil }
+func (m *testSigningIdentity) Serialize() ([]byte, error) {
+	if m.creator != nil {
+		return m.creator, nil
+	}
+	return testCreator, nil
+}
 func (*testSigningIdentity) GetCertificatePEM() ([]byte, error)             { return nil, nil }
 func (*testSigningIdentity) GetIdentifier() *msp.IdentityIdentifier         { return nil }
 func (*testSigningIdentity) GetPublicVersion() msp.Identity                 { return nil } //nolint:ireturn
@@ -106,7 +127,7 @@ func TestOrdererClient_Broadcast_NilClient(t *testing.T) {
 	t.Parallel()
 
 	oc := &OrdererClient{}
-	err := oc.Broadcast(t.Context(), &testSigningIdentity{}, "tx-1", someBroadcastTx())
+	err := oc.Broadcast(t.Context(), &testSigningIdentity{}, testID, someBroadcastTx())
 	require.Error(t, err)
 }
 
@@ -116,7 +137,7 @@ func TestOrdererClient_Broadcast_NilSigner(t *testing.T) {
 	oc := newTestOrdererClient(&mockAtomicBroadcastClient{
 		stream: &mockBroadcastStream{recvResp: &ab.BroadcastResponse{Status: cb.Status_SUCCESS}},
 	})
-	err := oc.Broadcast(t.Context(), nil, "tx-1", someBroadcastTx())
+	err := oc.Broadcast(t.Context(), nil, testID, someBroadcastTx())
 	require.Error(t, err)
 }
 
@@ -127,7 +148,7 @@ func TestOrdererClient_Broadcast_SignerError(t *testing.T) {
 		stream: &mockBroadcastStream{recvResp: &ab.BroadcastResponse{Status: cb.Status_SUCCESS}},
 	})
 	err := oc.Broadcast(t.Context(),
-		&testSigningIdentity{signErr: errors.New("sign failed")}, "tx-1", someBroadcastTx())
+		&testSigningIdentity{signErr: errors.New("sign failed")}, testID, someBroadcastTx())
 	require.Error(t, err)
 }
 
@@ -137,7 +158,7 @@ func TestOrdererClient_Broadcast_StreamError(t *testing.T) {
 	oc := newTestOrdererClient(&mockAtomicBroadcastClient{
 		broadcastErr: errors.New("stream unavailable"),
 	})
-	err := oc.Broadcast(t.Context(), &testSigningIdentity{}, "tx-1", someBroadcastTx())
+	err := oc.Broadcast(t.Context(), &testSigningIdentity{}, testID, someBroadcastTx())
 	require.Error(t, err)
 }
 
@@ -147,7 +168,7 @@ func TestOrdererClient_Broadcast_SendError(t *testing.T) {
 	oc := newTestOrdererClient(&mockAtomicBroadcastClient{
 		stream: &mockBroadcastStream{sendErr: errors.New("send failed")},
 	})
-	err := oc.Broadcast(t.Context(), &testSigningIdentity{}, "tx-1", someBroadcastTx())
+	err := oc.Broadcast(t.Context(), &testSigningIdentity{}, testID, someBroadcastTx())
 	require.Error(t, err)
 }
 
@@ -157,7 +178,7 @@ func TestOrdererClient_Broadcast_RecvError(t *testing.T) {
 	oc := newTestOrdererClient(&mockAtomicBroadcastClient{
 		stream: &mockBroadcastStream{recvErr: errors.New("recv failed")},
 	})
-	err := oc.Broadcast(t.Context(), &testSigningIdentity{}, "tx-1", someBroadcastTx())
+	err := oc.Broadcast(t.Context(), &testSigningIdentity{}, testID, someBroadcastTx())
 	require.Error(t, err)
 }
 
@@ -167,18 +188,55 @@ func TestOrdererClient_Broadcast_NonSuccessStatus(t *testing.T) {
 	oc := newTestOrdererClient(&mockAtomicBroadcastClient{
 		stream: &mockBroadcastStream{recvResp: &ab.BroadcastResponse{Status: cb.Status_BAD_REQUEST}},
 	})
-	err := oc.Broadcast(t.Context(), &testSigningIdentity{}, "tx-1", someBroadcastTx())
+	err := oc.Broadcast(t.Context(), &testSigningIdentity{}, testID, someBroadcastTx())
 	require.Error(t, err)
 }
 
 func TestOrdererClient_Broadcast_Success(t *testing.T) {
 	t.Parallel()
 
-	oc := newTestOrdererClient(&mockAtomicBroadcastClient{
-		stream: &mockBroadcastStream{recvResp: &ab.BroadcastResponse{Status: cb.Status_SUCCESS}},
-	})
-	err := oc.Broadcast(t.Context(), &testSigningIdentity{}, "tx-1", someBroadcastTx())
+	stream := &mockBroadcastStream{recvResp: &ab.BroadcastResponse{Status: cb.Status_SUCCESS}}
+	oc := newTestOrdererClient(&mockAtomicBroadcastClient{stream: stream})
+	err := oc.Broadcast(t.Context(), &testSigningIdentity{}, testID, someBroadcastTx())
 	require.NoError(t, err)
+
+	// the envelope carries what the orderer checks: TxId == ComputeTxID(nonce, creator)
+	payload, err := protoutil.UnmarshalPayload(stream.sent.GetPayload())
+	require.NoError(t, err)
+	chdr, err := protoutil.UnmarshalChannelHeader(payload.GetHeader().GetChannelHeader())
+	require.NoError(t, err)
+	shdr, err := protoutil.UnmarshalSignatureHeader(payload.GetHeader().GetSignatureHeader())
+	require.NoError(t, err)
+	require.Equal(t, testTxID, chdr.GetTxId())
+	require.Equal(t, testNonce, shdr.GetNonce())
+	require.Equal(t, testCreator, shdr.GetCreator())
+}
+
+func TestOrdererClient_Broadcast_RejectsBadTxID(t *testing.T) {
+	t.Parallel()
+
+	for name, tc := range map[string]struct {
+		signer *testSigningIdentity
+		id     transaction.ID
+		errMsg string
+	}{
+		"empty nonce": {&testSigningIdentity{}, transaction.ID{TxID: testTxID}, "no nonce"},
+		"different nonce": {
+			&testSigningIdentity{}, transaction.ID{TxID: testTxID, Nonce: []byte("x")}, errWrongCreator,
+		},
+		"different identity": {&testSigningIdentity{creator: []byte("other")}, testID, errWrongCreator},
+		"arbitrary txID":     {&testSigningIdentity{}, transaction.ID{TxID: "tx-1", Nonce: testNonce}, errWrongCreator},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			stream := &mockBroadcastStream{recvResp: &ab.BroadcastResponse{Status: cb.Status_SUCCESS}}
+			oc := newTestOrdererClient(&mockAtomicBroadcastClient{stream: stream})
+			err := oc.Broadcast(t.Context(), tc.signer, tc.id, someBroadcastTx())
+			require.ErrorContains(t, err, tc.errMsg)
+			require.Nil(t, stream.sent, "nothing must be sent to the orderer")
+		})
+	}
 }
 
 func TestOrdererClient_Close_CallsCloseFunc(t *testing.T) {

@@ -46,6 +46,8 @@ Transaction Lifecycle Flags:
 
 The query service must be configured: the transaction is built against the
 current channel config version.
+The MSP must be configured too, even without --endorse: the txID is derived
+from this identity, so the same identity must later submit the transaction.
 
 Examples:
   # Create namespace with single org policy (save to file)
@@ -92,7 +94,7 @@ Examples:
 				return nil
 			}
 
-			o, err := ctx.IOTransactionCodec.Encode(res.TxID, res.Tx)
+			o, err := ctx.IOTransactionCodec.Encode(res.ID, res.Tx)
 			if err != nil {
 				return err
 			}

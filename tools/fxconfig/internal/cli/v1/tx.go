@@ -30,7 +30,8 @@ Multi-Organization Workflow:
   2. Org1 endorses: fxconfig tx endorse tx.json --output tx_org1.json
   3. Org2 endorses: fxconfig tx endorse tx.json --output tx_org2.json
   4. Merge endorsements: fxconfig tx merge tx_org1.json tx_org2.json --output merged.json
-  5. Submit: fxconfig tx submit merged.json --wait`,
+  5. Org1 submits: fxconfig tx submit merged.json --wait
+     (only the identity that created the transaction can submit it)`,
 	}
 
 	cmd.AddCommand(

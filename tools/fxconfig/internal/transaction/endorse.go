@@ -8,8 +8,6 @@ package transaction
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -19,6 +17,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/msp"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 // Endorse signs a transaction with the provided identity for all namespaces.
@@ -99,12 +98,43 @@ func identity(signer msp.SigningIdentity) (*msppb.Identity, error) {
 	return &sid, nil
 }
 
-// GenerateTxID generates a unique transaction ID using SHA-256 hash of a random nonce.
-func GenerateTxID() string {
+// ErrNoNonce is returned for a transaction without a nonce, e.g., one created by an older fxconfig.
+var ErrNoNonce = errors.New("transaction has no nonce; recreate it with this version of fxconfig")
+
+// ID identifies a transaction. The orderer only accepts it if TxID == protoutil.ComputeTxID(Nonce, creator),
+// where creator is the serialized identity that submits the transaction.
+type ID struct {
+	TxID  string
+	Nonce []byte
+}
+
+// GenerateTxID returns a random nonce and the transaction ID the orderer expects for it and the given creator.
+func GenerateTxID(creator []byte) ID {
 	nonce := readNonce(nil)
-	hasher := sha256.New()
-	hasher.Write(nonce)
-	return hex.EncodeToString(hasher.Sum(nil))
+	return ID{TxID: protoutil.ComputeTxID(nonce, creator), Nonce: nonce}
+}
+
+// Validate checks that both the txID and the nonce are set.
+func (id ID) Validate() error {
+	if id.TxID == "" {
+		return errors.New("transaction has no txID")
+	}
+	if len(id.Nonce) == 0 {
+		return ErrNoNonce
+	}
+	return nil
+}
+
+// VerifyCreator checks that the orderer will accept id from the given serialized creator.
+func (id ID) VerifyCreator(creator []byte) error {
+	if err := id.Validate(); err != nil {
+		return err
+	}
+	if protoutil.ComputeTxID(id.Nonce, creator) != id.TxID {
+		return errors.New("txID does not match the signing identity: " +
+			"the transaction was created by a different identity and must be submitted by its creator")
+	}
+	return nil
 }
 
 // readNonce reads a byte array of the given size from the source.

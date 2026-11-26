@@ -17,6 +17,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/cli/v1/cliio"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
 
 func TestNewTxMergeCommand(t *testing.T) {
@@ -32,10 +33,6 @@ func TestNewTxMergeCommand(t *testing.T) {
 }
 
 // TestResolveInputs_SameTxID verifies that two files with the same txID are merged.
-//
-// NOTE: this test currently fails due to a bug in resolveInputs (tx_merge.go line ~91)
-// where `txIDs[txID]` uses the outer variable (initially "") instead of `txIDs[id]`
-// (the decoded ID), causing a spurious "" entry in the map for every merge call.
 func TestResolveInputs_SameTxID(t *testing.T) {
 	t.Parallel()
 
@@ -47,10 +44,26 @@ func TestResolveInputs_SameTxID(t *testing.T) {
 		IOTransactionCodec: &cliio.JSONCodec{},
 	}
 
-	txID, txs, err := resolveInputs(ctx, &cobra.Command{}, []string{file1, file2})
+	id, txs, err := resolveInputs(ctx, &cobra.Command{}, []string{file1, file2})
 	require.NoError(t, err)
-	require.Equal(t, "tx-abc", txID)
+	require.Equal(t, transaction.ID{TxID: "tx-abc", Nonce: []byte("nonce")}, id)
 	require.Len(t, txs, 2)
+}
+
+func TestResolveInputs_DifferentNonces(t *testing.T) {
+	t.Parallel()
+
+	file1 := writeTxFileWithNonce(t, "tx-abc", []byte("nonce-1"), &applicationpb.Tx{})
+	file2 := writeTxFileWithNonce(t, "tx-abc", []byte("nonce-2"), &applicationpb.Tx{})
+
+	ctx := &CLIContext{
+		App:                &testApp{},
+		IOTransactionCodec: &cliio.JSONCodec{},
+	}
+
+	_, _, err := resolveInputs(ctx, &cobra.Command{}, []string{file1, file2})
+	require.ErrorContains(t, err, "same nonce")
+	require.ErrorContains(t, err, file2, "error must name the offending file")
 }
 
 func TestResolveInputs_DifferentTxIDs(t *testing.T) {
@@ -67,6 +80,7 @@ func TestResolveInputs_DifferentTxIDs(t *testing.T) {
 	_, _, err := resolveInputs(ctx, &cobra.Command{}, []string{file1, file2})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "txID")
+	require.ErrorContains(t, err, file2, "error must name the offending file")
 }
 
 func TestResolveInputs_ThreeFilesSameTxID(t *testing.T) {
@@ -81,9 +95,9 @@ func TestResolveInputs_ThreeFilesSameTxID(t *testing.T) {
 		IOTransactionCodec: &cliio.JSONCodec{},
 	}
 
-	txID, txs, err := resolveInputs(ctx, &cobra.Command{}, []string{file1, file2, file3})
+	id, txs, err := resolveInputs(ctx, &cobra.Command{}, []string{file1, file2, file3})
 	require.NoError(t, err)
-	require.Equal(t, "tx-xyz", txID)
+	require.Equal(t, "tx-xyz", id.TxID)
 	require.Len(t, txs, 3)
 }
 

@@ -7,12 +7,14 @@ SPDX-License-Identifier: Apache-2.0
 package v1
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
 	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/cli/v1/cliio"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
 
 // newTxMergeCommand creates a command to merge multiple endorsed transactions
@@ -48,7 +50,7 @@ Examples:
   fxconfig tx merge tx_org1.json tx_org2.json > merged_tx.json`,
 		Args: cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txID, txs, err := resolveInputs(ctx, cmd, args)
+			id, txs, err := resolveInputs(ctx, cmd, args)
 			if err != nil {
 				return err
 			}
@@ -58,7 +60,7 @@ Examples:
 				return err
 			}
 
-			o, err := ctx.IOTransactionCodec.Encode(txID, mergedTx)
+			o, err := ctx.IOTransactionCodec.Encode(id, mergedTx)
 			if err != nil {
 				return err
 			}
@@ -71,36 +73,36 @@ Examples:
 	return cmd
 }
 
-func resolveInputs(ctx *CLIContext, cmd *cobra.Command, args []string) (string, []*applicationpb.Tx, error) {
+func resolveInputs(ctx *CLIContext, cmd *cobra.Command, args []string) (transaction.ID, []*applicationpb.Tx, error) {
 	txs := make([]*applicationpb.Tx, 0, len(args))
-	txIDs := make(map[string]struct{})
-	var txID string
+	var first transaction.ID
 
-	// go through all arguments and decode transactions
-	for _, arg := range args {
+	// go through all arguments, decode transactions, and make sure they all carry the same txID and nonce
+	for i, arg := range args {
 		input, err := cliio.ResolveInput(cmd, arg)
 		if err != nil {
-			return "", nil, err
+			return transaction.ID{}, nil, err
 		}
 
 		id, tx, err := ctx.IOTransactionCodec.Decode(input)
 		if err != nil {
-			return "", nil, err
+			return transaction.ID{}, nil, err
 		}
 
-		txIDs[id] = struct{}{}
-		if txID == "" {
-			txID = id
+		if i == 0 {
+			first = id
+		}
+		if id.TxID != first.TxID {
+			return transaction.ID{}, nil, fmt.Errorf("all transactions must have the same txID: %s has %s, %s has %s",
+				args[0], first.TxID, arg, id.TxID)
+		}
+		if !bytes.Equal(id.Nonce, first.Nonce) {
+			return transaction.ID{}, nil,
+				fmt.Errorf("all transactions must have the same nonce: %s differs from %s", arg, args[0])
 		}
 
 		txs = append(txs, tx)
 	}
 
-	// let's make sure that all transaction have the same txID
-	if len(txIDs) != 1 {
-		return "", nil,
-			fmt.Errorf("all transaction must have the same txID, found %d different txIDs", len(txIDs))
-	}
-
-	return txID, txs, nil
+	return first, txs, nil
 }

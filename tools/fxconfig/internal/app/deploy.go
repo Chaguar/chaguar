@@ -45,8 +45,8 @@ func (c *DeployNamespaceInput) Validate(vctx validation.Context) error {
 
 // DeployNamespaceOutput contains the generated transaction and ID.
 type DeployNamespaceOutput struct {
-	TxID string
-	Tx   *applicationpb.Tx
+	transaction.ID
+	Tx *applicationpb.Tx
 }
 
 // DeployNamespace creates a namespace transaction and submits it to the ordering service.
@@ -82,13 +82,13 @@ func (d *AdminApp) DeployNamespace(
 
 	// submit transaction
 	if input.Wait {
-		status, err := d.SubmitTransactionWithWait(ctx, out.TxID, out.Tx)
+		status, err := d.SubmitTransactionWithWait(ctx, out.ID, out.Tx)
 		if err != nil {
 			return nil, UnknownStatus, err
 		}
 		return nil, status, nil
 	}
-	if err := d.SubmitTransaction(ctx, out.TxID, out.Tx); err != nil {
+	if err := d.SubmitTransaction(ctx, out.ID, out.Tx); err != nil {
 		return nil, UnknownStatus, err
 	}
 

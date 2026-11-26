@@ -18,6 +18,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/api/committerpb"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/app"
 	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/cli/v1/cliio"
+	"github.com/hyperledger/fabric-x/tools/fxconfig/internal/transaction"
 )
 
 func TestNewCreateCommand(t *testing.T) {
@@ -41,8 +42,8 @@ func TestNewCreateCommandRun_TxReturned(t *testing.T) {
 
 	mockApp := &testApp{}
 	deployOut := &app.DeployNamespaceOutput{
-		TxID: "tx-123",
-		Tx:   &applicationpb.Tx{},
+		ID: transaction.ID{TxID: "tx-123", Nonce: []byte("nonce")},
+		Tx: &applicationpb.Tx{},
 	}
 	mockApp.On("DeployNamespace", mock.Anything, mock.Anything).Return(deployOut, app.UnknownStatus, nil)
 
@@ -129,17 +130,17 @@ func (t *testApp) EndorseTransaction(
 	return args.Get(0).(*applicationpb.Tx), args.Error(1) //nolint:errcheck,revive,forcetypeassert
 }
 
-func (t *testApp) SubmitTransaction(ctx context.Context, txID string, tx *applicationpb.Tx) error {
-	args := t.Called(ctx, txID, tx)
+func (t *testApp) SubmitTransaction(ctx context.Context, id transaction.ID, tx *applicationpb.Tx) error {
+	args := t.Called(ctx, id, tx)
 	return args.Error(0)
 }
 
 func (t *testApp) SubmitTransactionWithWait(
 	ctx context.Context,
-	txID string,
+	id transaction.ID,
 	tx *applicationpb.Tx,
 ) (app.TxStatus, error) {
-	args := t.Called(ctx, txID, tx)
+	args := t.Called(ctx, id, tx)
 	return args.Int(0), args.Error(1)
 }
 

@@ -7,8 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package transaction
 
 import (
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"slices"
 	"testing"
 	"time"
 
@@ -190,21 +192,22 @@ func TestEndorse(t *testing.T) {
 func TestGenerateTxID(t *testing.T) {
 	t.Parallel()
 
-	t.Run("returns valid hex string", func(t *testing.T) {
+	creator := []byte("serialized-creator")
+
+	t.Run("txID is hex(sha256(nonce || creator))", func(t *testing.T) {
 		t.Parallel()
 
-		id := GenerateTxID()
-		require.NotEmpty(t, id)
+		id := GenerateTxID(creator)
+		require.Len(t, id.Nonce, 24)
 
-		// SHA-256 produces 32 bytes → 64 hex characters
-		require.Len(t, id, 64)
-		_, err := hex.DecodeString(id)
-		require.NoError(t, err, "txID should be valid hex")
+		sum := sha256.Sum256(slices.Concat(id.Nonce, creator))
+		require.Equal(t, hex.EncodeToString(sum[:]), id.TxID)
 	})
 
-	t.Run("each call returns a unique ID", func(t *testing.T) {
+	t.Run("each call returns a unique ID and nonce", func(t *testing.T) {
 		t.Parallel()
-		a, b := GenerateTxID(), GenerateTxID()
-		require.NotEqual(t, a, b)
+		a, b := GenerateTxID(creator), GenerateTxID(creator)
+		require.NotEqual(t, a.TxID, b.TxID)
+		require.NotEqual(t, a.Nonce, b.Nonce)
 	})
 }

@@ -86,10 +86,12 @@ func submitConfigUpdate(t *testing.T, endpoints map[string]string, genesisPath s
 	require.NoError(t, err)
 
 	// Without LastUpdate, the committer takes the TX ID from the channel header, so it must be unique.
+	// The orderer also requires TxId == ComputeTxID(nonce, creator); this envelope has no creator.
 	chHdr := protoutil.MakeChannelHeader(cb.HeaderType_CONFIG, 0, channelID, 0)
-	chHdr.TxId = transaction.GenerateTxID()
+	id := transaction.GenerateTxID(nil)
+	chHdr.TxId = id.TxID
 	env := &cb.Envelope{Payload: protoutil.MarshalOrPanic(&cb.Payload{
-		Header: protoutil.MakePayloadHeader(chHdr, &cb.SignatureHeader{}),
+		Header: protoutil.MakePayloadHeader(chHdr, &cb.SignatureHeader{Nonce: id.Nonce}),
 		Data:   protoutil.MarshalOrPanic(&cb.ConfigEnvelope{Config: cfgEnv.Config}),
 	})}
 

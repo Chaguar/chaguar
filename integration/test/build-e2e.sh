@@ -7,18 +7,18 @@
 # Build Docker images for E2E integration testing.
 #
 # This script builds the orderer (arma-4p1s), committer (committer-test-node),
-# loadgen, and explorer (fabric-x-block-explorer) Docker images needed by
+# loadgen, and explorer (block-explorer) Docker images needed by
 # run-e2e.sh. It clones each repo at the specified ref and builds locally.
 #
 # Usage:
 #   ./build-e2e.sh                              # build using refs from refs.conf
-#   ./build-e2e.sh --fabric-x-ref=abc123        # override fabric-x tools ref
+#   ./build-e2e.sh --chaguar-ref=abc123         # override Chaguar tools ref
 #   ./build-e2e.sh --committer-ref=v1.2.3       # override committer ref
 #   ./build-e2e.sh --orderer-ref=abc123         # override orderer ref
 #   ./build-e2e.sh --explorer-ref=v1.0.0        # override explorer ref
 #   ./build-e2e.sh --explorer-repo=URL          # custom explorer repo URL
-#   ./build-e2e.sh --fabric-x-repo=URL          # custom fabric-x repo URL
-#   ./build-e2e.sh --fabric-x-local-path=PATH   # build fabric-x tools from local working copy
+#   ./build-e2e.sh --chaguar-repo=URL           # custom chaguar repo URL
+#   ./build-e2e.sh --chaguar-local-path=PATH    # build Chaguar tools from local working copy
 #   ./build-e2e.sh --orderer-local-path=PATH    # build orderer from local working copy
 #   ./build-e2e.sh --committer-local-path=PATH  # build committer from local working copy
 #   ./build-e2e.sh --explorer-local-path=PATH   # build explorer from local working copy
@@ -64,15 +64,15 @@ ENABLE_LOADGEN="${ENABLE_LOADGEN:-true}"
 # ──────────────────────────────────────────────────────────────────────────────
 for arg in "$@"; do
   case "${arg}" in
-  --fabric-x-ref=*) FABRIC_X_REF="${arg#*=}" ;;
+  --chaguar-ref=*) CHAGUAR_REF="${arg#*=}" ;;
   --committer-ref=*) COMMITTER_REF="${arg#*=}" ;;
   --orderer-ref=*) ORDERER_REF="${arg#*=}" ;;
   --explorer-ref=*) EXPLORER_REF="${arg#*=}" ;;
-  --fabric-x-repo=*) FABRIC_X_REPO="${arg#*=}" ;;
+  --chaguar-repo=*) CHAGUAR_REPO="${arg#*=}" ;;
   --committer-repo=*) COMMITTER_REPO="${arg#*=}" ;;
   --orderer-repo=*) ORDERER_REPO="${arg#*=}" ;;
   --explorer-repo=*) EXPLORER_REPO="${arg#*=}" ;;
-  --fabric-x-local-path=*) FABRIC_X_LOCAL_PATH="${arg#*=}" ;;
+  --chaguar-local-path=*) CHAGUAR_LOCAL_PATH="${arg#*=}" ;;
   --committer-local-path=*) COMMITTER_LOCAL_PATH="${arg#*=}" ;;
   --orderer-local-path=*) ORDERER_LOCAL_PATH="${arg#*=}" ;;
   --explorer-local-path=*) EXPLORER_LOCAL_PATH="${arg#*=}" ;;
@@ -80,21 +80,26 @@ for arg in "$@"; do
     echo "Usage: ./build-e2e.sh [OPTIONS]"
     echo ""
     echo "Options:"
-    echo "  --fabric-x-ref=REF          Tag, branch, or commit for fabric-x tools"
-    echo "  --committer-ref=REF         Tag, branch, or commit for fabric-x-committer"
-    echo "  --orderer-ref=REF           Tag, branch, or commit for fabric-x-orderer"
-    echo "  --explorer-ref=REF          Tag, branch, or commit for fabric-x-explorer"
-    echo "  --fabric-x-repo=URL         Override default fabric-x GitHub repo URL"
+    echo "  --chaguar-ref=REF           Tag, branch, or commit for Chaguar tools"
+    echo "  --committer-ref=REF         Tag, branch, or commit for Chaguar/committer"
+    echo "  --orderer-ref=REF           Tag, branch, or commit for Chaguar/orderer"
+    echo "  --explorer-ref=REF          Tag, branch, or commit for Chaguar/block-explorer"
+    echo "  --chaguar-repo=URL          Override default chaguar GitHub repo URL"
     echo "  --committer-repo=URL        Override default committer GitHub repo URL"
     echo "  --orderer-repo=URL          Override default orderer GitHub repo URL"
     echo "  --explorer-repo=URL         Override default explorer GitHub repo URL"
-    echo "  --fabric-x-local-path=PATH  Build fabric-x tools from local working copy"
+    echo "  --chaguar-local-path=PATH   Build Chaguar tools from local working copy"
     echo "  --committer-local-path=PATH Build committer/loadgen from local working copy"
     echo "  --orderer-local-path=PATH   Build orderer from local working copy"
     echo "  --explorer-local-path=PATH  Build explorer from local working copy"
     echo ""
     echo "Refs are loaded from refs.conf by default and can be overridden via CLI."
     exit 0
+    ;;
+  --fabric-x-*)
+    old_flag="${arg%%=*}"
+    echo "ERROR: ${old_flag} was renamed to --chaguar-${old_flag#--fabric-x-} (Fabric-X is now Chaguar)."
+    exit 1
     ;;
   *)
     echo "Unknown argument: ${arg}"
@@ -112,7 +117,7 @@ require_var() {
   fi
 }
 
-require_var "FABRIC_X_REF" "FABRIC_X_REF is not set. Please specify --fabric-x-ref or set it in refs.conf"
+require_var "CHAGUAR_REF" "CHAGUAR_REF is not set. Please specify --chaguar-ref or set it in refs.conf"
 require_var "COMMITTER_REF" "COMMITTER_REF is not set. Please specify --committer-ref or set it in refs.conf"
 require_var "ORDERER_REF" "ORDERER_REF is not set. Please specify --orderer-ref or set it in refs.conf"
 if [ "${ENABLE_EXPLORER}" = "true" ]; then
@@ -175,14 +180,14 @@ checkout_source() {
 mkdir -p "${BUILD_DIR}"
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Clone fabric-x repository for tools at FABRIC_X_REF
+# Clone chaguar repository for tools at CHAGUAR_REF
 # ──────────────────────────────────────────────────────────────────────────────
-FABRIC_X_DIR="${BUILD_DIR}/fabric-x"
-echo "Preparing fabric-x repo for tools at ${FABRIC_X_REF}..."
-checkout_source "${FABRIC_X_REPO}" "${FABRIC_X_REF}" "${FABRIC_X_DIR}" "${FABRIC_X_LOCAL_PATH:-}" "fabric-x"
-echo "Building fabric-x tools..."
-make -C "${FABRIC_X_DIR}" tools
-echo "fabric-x tools ready at ${FABRIC_X_DIR}"
+CHAGUAR_DIR="${BUILD_DIR}/chaguar"
+echo "Preparing chaguar repo for tools at ${CHAGUAR_REF}..."
+checkout_source "${CHAGUAR_REPO}" "${CHAGUAR_REF}" "${CHAGUAR_DIR}" "${CHAGUAR_LOCAL_PATH:-}" "chaguar"
+echo "Building Chaguar tools..."
+make -C "${CHAGUAR_DIR}" tools
+echo "Chaguar tools ready at ${CHAGUAR_DIR}"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Build orderer image (arma-4p1s)
@@ -191,8 +196,8 @@ echo "fabric-x tools ready at ${FABRIC_X_DIR}"
 # assembler) into a single container. The all-in-one Dockerfile in the orderer
 # repo builds the armageddon binary and bundles it with the role entrypoints.
 # ──────────────────────────────────────────────────────────────────────────────
-ORDERER_DIR="${BUILD_DIR}/fabric-x-orderer"
-checkout_source "${ORDERER_REPO}" "${ORDERER_REF}" "${ORDERER_DIR}" "${ORDERER_LOCAL_PATH:-}" "fabric-x-orderer"
+ORDERER_DIR="${BUILD_DIR}/orderer"
+checkout_source "${ORDERER_REPO}" "${ORDERER_REF}" "${ORDERER_DIR}" "${ORDERER_LOCAL_PATH:-}" "orderer"
 
 echo "Building ${ORDERER_IMAGE_NAME} image from ${ORDERER_DIR}..."
 # Orderer v1.0.7 moved node/examples/ to examples/; keep older refs working.
@@ -200,7 +205,7 @@ ORDERER_DOCKERFILE="${ORDERER_DIR}/examples/all-in-one/Dockerfile"
 [ -f "${ORDERER_DOCKERFILE}" ] || ORDERER_DOCKERFILE="${ORDERER_DIR}/node/examples/all-in-one/Dockerfile"
 docker build -t "localhost/${ORDERER_IMAGE_NAME}" -f "${ORDERER_DOCKERFILE}" "${ORDERER_DIR}"
 # Tag with the exact name run-e2e.sh resolves from refs.conf, so no pull is needed.
-ORDERER_IMAGE="docker.io/hyperledger/${ORDERER_IMAGE_NAME}:${ORDERER_REF}"
+ORDERER_IMAGE="localhost/${ORDERER_IMAGE_NAME}:${ORDERER_REF}"
 docker tag "localhost/${ORDERER_IMAGE_NAME}" "${ORDERER_IMAGE}"
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -210,14 +215,18 @@ docker tag "localhost/${ORDERER_IMAGE_NAME}" "${ORDERER_IMAGE}"
 # coordinator, verifier, validator-committer, query) into a single container.
 # It uses the committer Makefile target `build-image-test-node`.
 # ──────────────────────────────────────────────────────────────────────────────
-COMMITTER_DIR="${BUILD_DIR}/fabric-x-committer"
-checkout_source "${COMMITTER_REPO}" "${COMMITTER_REF}" "${COMMITTER_DIR}" "${COMMITTER_LOCAL_PATH:-}" "fabric-x-committer"
+COMMITTER_DIR="${BUILD_DIR}/committer"
+checkout_source "${COMMITTER_REPO}" "${COMMITTER_REF}" "${COMMITTER_DIR}" "${COMMITTER_LOCAL_PATH:-}" "committer"
 
 echo "Building ${COMMITTER_IMAGE_NAME} image from ${COMMITTER_DIR}..."
-make -C "${COMMITTER_DIR}" build-image-test-node
-# build-image-test-node creates docker.io/hyperledger/${COMMITTER_IMAGE_NAME} locally.
+# Override the committer's image_namespace so the image is tagged
+# localhost/${COMMITTER_IMAGE_NAME}:latest, whatever namespace the ref defaults to.
+# Remove the Makefile's stamp file first: a --committer-local-path copy may carry a
+# stale .build/test-node-image, which would make make skip the docker build.
+rm -f "${COMMITTER_DIR}/.build/test-node-image"
+make -C "${COMMITTER_DIR}" build-image-test-node image_namespace=localhost
 # Tag with refs.conf-derived tag expected by run-e2e.sh.
-COMMITTER_IMAGE_BASE="docker.io/hyperledger/${COMMITTER_IMAGE_NAME}"
+COMMITTER_IMAGE_BASE="localhost/${COMMITTER_IMAGE_NAME}"
 COMMITTER_IMAGE="${COMMITTER_IMAGE_BASE}:${COMMITTER_REF}"
 docker tag "${COMMITTER_IMAGE_BASE}" "${COMMITTER_IMAGE}"
 
@@ -226,7 +235,7 @@ docker tag "${COMMITTER_IMAGE_BASE}" "${COMMITTER_IMAGE}"
 # standalone loadgen image, so build it explicitly.
 LOADGEN_IMAGE=""
 if [ "${ENABLE_LOADGEN}" = "true" ]; then
-  LOADGEN_IMAGE_BASE="docker.io/hyperledger/${LOADGEN_IMAGE_NAME}"
+  LOADGEN_IMAGE_BASE="localhost/${LOADGEN_IMAGE_NAME}"
   LOADGEN_IMAGE="${LOADGEN_IMAGE_BASE}:${COMMITTER_REF}"
   LOADGEN_BUILD_ARCH="${LOADGEN_BUILD_ARCH:-$(go env GOARCH)}"
 
@@ -245,7 +254,7 @@ else
 fi
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Build explorer image (fabric-x-block-explorer)
+# Build explorer image (block-explorer)
 #
 # The explorer image packages the block explorer server (REST API + /healthz),
 # the block ingestion worker (connects to the committer sidecar), and the
@@ -253,15 +262,13 @@ fi
 # root of the explorer repo and is started via "start --config /config/explorer.yaml".
 # Supports --explorer-local-path for local fork/branch testing.
 #
-# The explorer is published under the LF-Decentralized-Trust-labs org (not
-# hyperledger), so the image is tagged under localhost/ rather than
-# docker.io/hyperledger/. run-e2e.sh resolves the same localhost/ tag from
-# refs.conf, so no registry pull is needed.
+# The image is tagged under localhost/. run-e2e.sh resolves the same
+# localhost/ tag from refs.conf, so no registry pull is needed.
 # ──────────────────────────────────────────────────────────────────────────────
 EXPLORER_IMAGE=""
 if [ "${ENABLE_EXPLORER}" = "true" ]; then
-  EXPLORER_DIR="${BUILD_DIR}/fabric-x-block-explorer"
-  checkout_source "${EXPLORER_REPO}" "${EXPLORER_REF}" "${EXPLORER_DIR}" "${EXPLORER_LOCAL_PATH:-}" "fabric-x-block-explorer"
+  EXPLORER_DIR="${BUILD_DIR}/block-explorer"
+  checkout_source "${EXPLORER_REPO}" "${EXPLORER_REF}" "${EXPLORER_DIR}" "${EXPLORER_LOCAL_PATH:-}" "block-explorer"
 
   # The release Dockerfile expects pre-built binaries under release/linux-<arch>/.
   # Run make build-release first to produce them, then build the image.

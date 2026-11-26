@@ -28,11 +28,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # Docker Hub publishing is disabled; images go to ghcr.io only.
+      # To re-enable, uncomment this step and the docker.io tags below.
+      # - name: Log in to Docker Hub
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -56,14 +58,11 @@ jobs:
       - name: Set image build prefix and metadata
         run: |
           echo "CREATED=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
-          echo "REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV        
-          if [ "$GITHUB_REPOSITORY_OWNER" == "hyperledger" ]; then
-           echo "IMAGE_PREFIX=hyperledger" >> $GITHUB_ENV
-          else
-           echo "IMAGE_PREFIX=${{ secrets.DOCKERHUB_USERNAME }}" >> $GITHUB_ENV
-          fi
+          echo "REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          # Registry namespaces must be lowercase (Chaguar -> chaguar).
+          echo "IMAGE_PREFIX=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
 
-      - name: Build and push the fabric-x-tools image
+      - name: Build and push the chaguar-tools image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -75,7 +74,8 @@ jobs:
             CREATED=${{ env.CREATED }}
             REVISION=${{ env.REVISION }}
           tags: |
-            docker.io/${{ env.IMAGE_PREFIX }}/fabric-x-tools:${{ env.VERSION }}
-            docker.io/${{ env.IMAGE_PREFIX }}/fabric-x-tools:latest
-            ghcr.io/${{ env.IMAGE_PREFIX }}/fabric-x-tools:${{ env.VERSION }}
-            ghcr.io/${{ env.IMAGE_PREFIX }}/fabric-x-tools:latest
+            ghcr.io/${{ env.IMAGE_PREFIX }}/chaguar-tools:${{ env.VERSION }}
+            ghcr.io/${{ env.IMAGE_PREFIX }}/chaguar-tools:latest
+          # Docker Hub (disabled):
+          #   docker.io/${{ secrets.DOCKERHUB_USERNAME }}/chaguar-tools:${{ env.VERSION }}
+          #   docker.io/${{ secrets.DOCKERHUB_USERNAME }}/chaguar-tools:latest

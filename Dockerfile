@@ -49,28 +49,28 @@ ARG REVISION=1.0
 
 # Add non-root user (UID 10001) without installing extra packages
 RUN /usr/sbin/useradd -u 10001 -r -g root -s /sbin/nologin \
-    -c "Fabric-X tools user" fabricx && \
-    mkdir -p /home/fabricx && \
-    chown -R 10001:0 /home/fabricx && \
-    chmod 0755 /home/fabricx
+    -c "Chaguar tools user" chaguar && \
+    mkdir -p /home/chaguar && \
+    chown -R 10001:0 /home/chaguar && \
+    chmod 0755 /home/chaguar
 
 # Copy only the built tools
 COPY --from=builder /tmp/bin/* /usr/local/bin/
 
 # OCI metadata labels
 LABEL org.opencontainers.image.created="${CREATED}" \
-    org.opencontainers.image.description="Fabric-X CLI tools (configtxgen, cryptogen, configtxlator, fxconfig, fxadmin) packaged in a UBI image." \
+    org.opencontainers.image.description="Chaguar CLI tools (configtxgen, cryptogen, configtxlator, fxconfig, fxadmin) packaged in a UBI image." \
     org.opencontainers.image.licenses="Apache-2.0" \
     org.opencontainers.image.ref.name="ubi9/ubi-minimal" \
     org.opencontainers.image.revision="${REVISION}" \
-    org.opencontainers.image.source="https://github.com/hyperledger/fabric-x" \
-    org.opencontainers.image.title="fabric-x" \
-    org.opencontainers.image.url="https://github.com/hyperledger/fabric-x" \
+    org.opencontainers.image.source="https://github.com/Chaguar/chaguar" \
+    org.opencontainers.image.title="chaguar" \
+    org.opencontainers.image.url="https://github.com/Chaguar/chaguar" \
     org.opencontainers.image.version="${VERSION}"
 
 # Use non-root user
 USER 10001
-WORKDIR /home/fabricx
+WORKDIR /home/chaguar
 
 # Define default CMD
 CMD ["/bin/sh"]

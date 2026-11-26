@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Explorer config for the fabric-x E2E integration test.
+# Explorer config for the Chaguar E2E integration test.
 # Connects to the committer sidecar (mtls, same credentials as loadgen) and to the postgres service.
 # Mounted at /config/explorer.yaml inside the explorer container.
 ---

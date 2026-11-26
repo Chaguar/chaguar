@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 -->
 # E2E Integration Test
 
-End-to-end integration test for the Fabric-X transaction pipeline. Exercises the full lifecycle:
+End-to-end integration test for the Chaguar transaction pipeline. Exercises the full lifecycle:
 
 ```
 Loadgen → Arma Routers (BFT broadcast)
@@ -16,9 +16,9 @@ Loadgen → Arma Routers (BFT broadcast)
 ## Prerequisites
 
 - Docker (with compose plugin)
-- `cryptogen`, `configtxgen`, and `fxconfig` built from this repo (`make tools` from fabric-x root)
+- `cryptogen`, `configtxgen`, and `fxconfig` built from this repo (`make tools` from the repo root)
 - `curl` and `nc` (netcat) on the host
-- Docker images built by `build-e2e.sh`: `arma-4p1s`, `committer-test-node`, `fabric-x-loadgen`, `fabric-x-block-explorer`
+- Docker images built by `build-e2e.sh`: `arma-4p1s`, `committer-test-node`, `chaguar-loadgen`, `chaguar-block-explorer`
 
 ## Quick Start
 
@@ -36,7 +36,7 @@ cd integration/test
 
 ### `build-e2e.sh`
 
-Builds all Docker images needed by `run-e2e.sh`: orderer (`arma-4p1s`), committer (`committer-test-node`), loadgen (`fabric-x-loadgen`), and explorer (`fabric-x-block-explorer`). Also clones fabric-x at a specific ref to build host tools (`cryptogen`, `configtxgen`, `fxconfig`).
+Builds all Docker images needed by `run-e2e.sh`: orderer (`arma-4p1s`), committer (`committer-test-node`), loadgen (`chaguar-loadgen`), and explorer (`chaguar-block-explorer`). Also clones chaguar at a specific ref to build host tools (`cryptogen`, `configtxgen`, `fxconfig`).
 
 Image build strategy per component:
 
@@ -62,13 +62,13 @@ All refs and image names default to values in `refs.conf` and can be overridden 
 ./build-e2e.sh --orderer-ref=main --committer-ref=my-feature-branch
 
 # Use a custom repo URL for committer (e.g., a fork)
-./build-e2e.sh --committer-repo=https://github.com/myorg/fabric-x-committer.git --committer-ref=my-branch
+./build-e2e.sh --committer-repo=https://github.com/myorg/committer.git --committer-ref=my-branch
 
 # Use a custom repo URL for explorer (e.g., a fork)
-./build-e2e.sh --explorer-repo=https://github.com/myorg/fabric-x-block-explorer.git --explorer-ref=my-branch
+./build-e2e.sh --explorer-repo=https://github.com/myorg/block-explorer.git --explorer-ref=my-branch
 
 # Build explorer from a local working copy
-./build-e2e.sh --explorer-local-path=../fabric-x-block-explorer --explorer-ref=dev
+./build-e2e.sh --explorer-local-path=../block-explorer --explorer-ref=dev
 
 # Then run the test
 ./run-e2e.sh
@@ -78,15 +78,15 @@ All refs and image names default to values in `refs.conf` and can be overridden 
 
 | Flag | Description |
 |---|---|
-| `--fabric-x-ref=REF` | Tag, branch, or commit for fabric-x tools |
-| `--committer-ref=REF` | Tag, branch, or commit for fabric-x-committer |
-| `--orderer-ref=REF` | Tag, branch, or commit for fabric-x-orderer |
-| `--explorer-ref=REF` | Tag, branch, or commit for fabric-x-block-explorer |
-| `--fabric-x-repo=URL` | Override default fabric-x GitHub repo URL |
+| `--chaguar-ref=REF` | Tag, branch, or commit for Chaguar tools |
+| `--committer-ref=REF` | Tag, branch, or commit for Chaguar/committer |
+| `--orderer-ref=REF` | Tag, branch, or commit for Chaguar/orderer |
+| `--explorer-ref=REF` | Tag, branch, or commit for Chaguar/block-explorer |
+| `--chaguar-repo=URL` | Override default chaguar GitHub repo URL |
 | `--committer-repo=URL` | Override default committer GitHub repo URL |
 | `--orderer-repo=URL` | Override default orderer GitHub repo URL |
 | `--explorer-repo=URL` | Override default explorer GitHub repo URL |
-| `--fabric-x-local-path=PATH` | Build fabric-x tools from local working copy |
+| `--chaguar-local-path=PATH` | Build Chaguar tools from local working copy |
 | `--committer-local-path=PATH` | Build committer/loadgen from local working copy |
 | `--orderer-local-path=PATH` | Build orderer from local working copy |
 | `--explorer-local-path=PATH` | Build explorer from local working copy |
@@ -115,11 +115,11 @@ SKIP_CLEANUP_PROMPT=1 ./run-e2e.sh
 
 | Variable | Default | Description |
 |---|---|---|
-| `ORDERER_IMAGE` | `docker.io/hyperledger/${ORDERER_IMAGE_NAME}:${ORDERER_REF}` | Resolved from `refs.conf` |
-| `COMMITTER_IMAGE` | `docker.io/hyperledger/${COMMITTER_IMAGE_NAME}:${COMMITTER_REF}` | Resolved from `refs.conf` |
-| `LOADGEN_IMAGE` | `docker.io/hyperledger/fabric-x-loadgen:${COMMITTER_REF}` | Versioned with `COMMITTER_REF` |
-| `FABRIC_X_BIN` | `integration/test/.build/fabric-x/bin` | Built by `build-e2e.sh` |
-| `EXPLORER_IMAGE` | `localhost/fabric-x-block-explorer:${EXPLORER_REF}` | Built locally by `build-e2e.sh` |
+| `ORDERER_IMAGE` | `localhost/${ORDERER_IMAGE_NAME}:${ORDERER_REF}` | Resolved from `refs.conf` |
+| `COMMITTER_IMAGE` | `localhost/${COMMITTER_IMAGE_NAME}:${COMMITTER_REF}` | Resolved from `refs.conf` |
+| `LOADGEN_IMAGE` | `localhost/chaguar-loadgen:${COMMITTER_REF}` | Versioned with `COMMITTER_REF` |
+| `CHAGUAR_BIN` | `integration/test/.build/chaguar/bin` | Built by `build-e2e.sh` |
+| `EXPLORER_IMAGE` | `localhost/chaguar-block-explorer:${EXPLORER_REF}` | Built locally by `build-e2e.sh` |
 
 **Steps performed:**
 
@@ -155,27 +155,27 @@ You can run the GitHub Actions workflow from github.com or with the GitHub CLI.
 
 ### From github.com
 
-1. Open: `https://github.com/hyperledger/fabric-x/actions/workflows/e2e.yml`
+1. Open: `https://github.com/Chaguar/chaguar/actions/workflows/e2e.yml`
 2. Click **Run workflow**.
 3. Select the branch that contains your workflow/code changes.
-4. Enter `fabric-x-ref`, `orderer-ref`, `committer-ref`, and `explorer-ref` (or leave empty for refs.conf defaults).
+4. Enter `chaguar-ref`, `orderer-ref`, `committer-ref`, and `explorer-ref` (or leave empty for refs.conf defaults).
 5. Click **Run workflow**.
 
 ### Workflow inputs
 
 | Input | Meaning |
 |---|---|
-| `fabric-x-ref` | Ref for `fabric-x` tools (cryptogen, configtxgen, fxconfig). `""` = refs.conf default |
-| `orderer-ref` | Ref for `fabric-x-orderer` (`""` = refs.conf default; any ref is built from source) |
-| `committer-ref` | Ref for `fabric-x-committer` (`""` = refs.conf default; any ref is built from source) |
-| `explorer-ref` | Ref for `fabric-x-block-explorer` (`""` = refs.conf default; any ref is built from source) |
+| `chaguar-ref` | Ref for `chaguar` tools (cryptogen, configtxgen, fxconfig). `""` = refs.conf default |
+| `orderer-ref` | Ref for `Chaguar/orderer` (`""` = refs.conf default; any ref is built from source) |
+| `committer-ref` | Ref for `Chaguar/committer` (`""` = refs.conf default; any ref is built from source) |
+| `explorer-ref` | Ref for `Chaguar/block-explorer` (`""` = refs.conf default; any ref is built from source) |
 
 Notes:
 
 - The workflow delegates all image builds and tools build to `integration/test/build-e2e.sh`.
 - `build-e2e.sh` writes resolved image names to `GITHUB_OUTPUT` for downstream workflow steps.
 - The loadgen image tag matches the committer-ref (explicit or from refs.conf).
-- The fabric-x tools (cryptogen, configtxgen, fxconfig) are built at the specified `fabric-x-ref` and placed in `integration/test/.build/fabric-x/bin`.
+- The Chaguar tools (cryptogen, configtxgen, fxconfig) are built at the specified `chaguar-ref` and placed in `integration/test/.build/chaguar/bin`.
 
 ### GitHub CLI examples
 
@@ -185,35 +185,35 @@ gh workflow run e2e.yml
 
 # 2) Build all components from commit hashes
 gh workflow run e2e.yml \
-  -f fabric-x-ref=abc123 \
+  -f chaguar-ref=abc123 \
   -f orderer-ref=f1dfdd7b4e3c5d9ff6c1843da0bf78155262d4f2 \
   -f committer-ref=d35655cc \
   -f explorer-ref=e7a91f2c
 
 # 3) Build all components from release tags
 gh workflow run e2e.yml \
-  -f fabric-x-ref=v1.0.0 \
+  -f chaguar-ref=v1.0.0 \
   -f orderer-ref=v1.2.3 \
   -f committer-ref=v1.2.3 \
   -f explorer-ref=v0.1.0
 
 # 4) Build all components from branch names
 gh workflow run e2e.yml \
-  -f fabric-x-ref=main \
+  -f chaguar-ref=main \
   -f orderer-ref=main \
   -f committer-ref=feature/e2e-fix \
   -f explorer-ref=main
 
 # 5) Mixed: tools from tag, orderer from commit, committer from tag, explorer from branch
 gh workflow run e2e.yml \
-  -f fabric-x-ref=v1.0.0 \
+  -f chaguar-ref=v1.0.0 \
   -f orderer-ref=f1dfdd7b4e3c5d9ff6c1843da0bf78155262d4f2 \
   -f committer-ref=v1.2.3 \
   -f explorer-ref=fix/ingest-bug
 
-# 6) Test with specific fabric-x tools version only
+# 6) Test with specific Chaguar tools version only
 gh workflow run e2e.yml \
-  -f fabric-x-ref=v1.1.0
+  -f chaguar-ref=v1.1.0
 ```
 
 To inspect runs:
@@ -225,7 +225,7 @@ gh run watch
 
 ## Monitoring (Prometheus + Grafana)
 
-The E2E test deploys a monitoring stack by default with Prometheus and Grafana containers. Prometheus scrapes metrics from all Fabric-X services, and Grafana serves pre-provisioned dashboards.
+The E2E test deploys a monitoring stack by default with Prometheus and Grafana containers. Prometheus scrapes metrics from all Chaguar services, and Grafana serves pre-provisioned dashboards.
 
 **Access points (after services are running):**
 
@@ -297,7 +297,7 @@ integration/test/
 ├── explorerconfig/             # Explorer config files (mounted into explorer container)
 │   └── explorer.yaml           #   DB + sidecar + REST server config
 ├── prometheus/                 # Prometheus configuration
-│   └── prometheus.yml          #   Scrape targets for all Fabric-X services
+│   └── prometheus.yml          #   Scrape targets for all Chaguar services
 └── grafana/                    # Grafana dashboards and provisioning
     ├── committer.json          #   Committer pipeline dashboard
     ├── orderer.json            #   Arma orderer dashboard
@@ -311,7 +311,7 @@ integration/test/
 ### Generated at runtime (git-ignored)
 
 ```
-/tmp/fabric-x-test/
+/tmp/chaguar-test/
 ├── artifacts/                  # Crypto material, configs, genesis block
 │   ├── ordererOrganizations/   # 4 orderer org certs/keys
 │   ├── peerOrganizations/      # 2 peer org certs/keys

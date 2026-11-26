@@ -6,7 +6,7 @@
 apiVersion: 1
 
 providers:
-  - name: "Fabric-X Dashboards"
+  - name: "Chaguar Dashboards"
     orgId: 1
     folder: ""
     type: file

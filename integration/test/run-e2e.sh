@@ -92,9 +92,9 @@ wait_for_mtls() {
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-export ARTIFACTS_DIR="/tmp/fabric-x-test/artifacts"
-export STORAGE_DIR="/tmp/fabric-x-test/arma-storage"
-DEFAULT_FABRIC_X_BIN="${SCRIPT_DIR}/.build/fabric-x/bin"
+export ARTIFACTS_DIR="/tmp/chaguar-test/artifacts"
+export STORAGE_DIR="/tmp/chaguar-test/arma-storage"
+DEFAULT_CHAGUAR_BIN="${SCRIPT_DIR}/.build/chaguar/bin"
 
 REFS_CONF="${SCRIPT_DIR}/refs.conf"
 if [ ! -f "${REFS_CONF}" ]; then
@@ -104,18 +104,18 @@ fi
 # shellcheck source=refs.conf
 source "${REFS_CONF}"
 
-export ORDERER_IMAGE="${ORDERER_IMAGE:-docker.io/hyperledger/${ORDERER_IMAGE_NAME}:${ORDERER_REF}}"
-export COMMITTER_IMAGE="${COMMITTER_IMAGE:-docker.io/hyperledger/${COMMITTER_IMAGE_NAME}:${COMMITTER_REF}}"
-export LOADGEN_IMAGE="${LOADGEN_IMAGE:-docker.io/hyperledger/${LOADGEN_IMAGE_NAME}:${COMMITTER_REF}}"
+export ORDERER_IMAGE="${ORDERER_IMAGE:-localhost/${ORDERER_IMAGE_NAME}:${ORDERER_REF}}"
+export COMMITTER_IMAGE="${COMMITTER_IMAGE:-localhost/${COMMITTER_IMAGE_NAME}:${COMMITTER_REF}}"
+export LOADGEN_IMAGE="${LOADGEN_IMAGE:-localhost/${LOADGEN_IMAGE_NAME}:${COMMITTER_REF}}"
 export EXPLORER_IMAGE="${EXPLORER_IMAGE:-localhost/${EXPLORER_IMAGE_NAME}:${EXPLORER_REF}}"
-FABRIC_X_BIN="${FABRIC_X_BIN:-${DEFAULT_FABRIC_X_BIN}}"
+CHAGUAR_BIN="${CHAGUAR_BIN:-${DEFAULT_CHAGUAR_BIN}}"
 
 COMPOSE_FILES=("-f" "${SCRIPT_DIR}/docker-compose.yaml")
 HEALTH_TIMEOUT="120"
 ENABLE_MONITORING="${ENABLE_MONITORING:-true}"
 ENABLE_EXPLORER="${ENABLE_EXPLORER:-true}"
 
-# Validates required host binaries and generated fabric-x tools are present.
+# Validates required host binaries and generated Chaguar tools are present.
 # Fails fast with clear errors to avoid partial E2E setup.
 check_prereqs() {
   for bin in docker nc curl openssl; do
@@ -125,8 +125,8 @@ check_prereqs() {
     }
   done
   for bin in cryptogen configtxgen fxconfig; do
-    [ -x "${FABRIC_X_BIN}/${bin}" ] || {
-      echo "ERROR: '${FABRIC_X_BIN}/${bin}' not found. Build binaries under ./.build/fabric-x/bin first."
+    [ -x "${CHAGUAR_BIN}/${bin}" ] || {
+      echo "ERROR: '${CHAGUAR_BIN}/${bin}' not found. Build binaries under ./.build/chaguar/bin first."
       exit 1
     }
   done
@@ -187,7 +187,7 @@ step_0_prepare_dirs() {
 # Writes certificates/keys under the runtime artifacts directory.
 step_1_generate_crypto() {
   echo "=== Step 1: Generate crypto material ==="
-  "${FABRIC_X_BIN}/cryptogen" generate \
+  "${CHAGUAR_BIN}/cryptogen" generate \
     --config="${SCRIPT_DIR}/networkconfig/crypto-config.yaml" \
     --output="${ARTIFACTS_DIR}"
 }
@@ -293,7 +293,7 @@ step_4_generate_config_block() {
   sed "s|ARTIFACTS_DIR|${ARTIFACTS_DIR}|g" \
     "${SCRIPT_DIR}/networkconfig/configtx.yaml" >"${CONFIGTX_DIR}/configtx.yaml"
 
-  "${FABRIC_X_BIN}/configtxgen" \
+  "${CHAGUAR_BIN}/configtxgen" \
     -profile E2EProfile \
     -channelID mychannel \
     -configPath "${CONFIGTX_DIR}" \
@@ -422,25 +422,25 @@ step_7_create_namespace() {
   FXCONFIG_TX_DIR="${ARTIFACTS_DIR}/fxconfig-tx"
   mkdir -p "${FXCONFIG_TX_DIR}"
 
-  "${FABRIC_X_BIN}/fxconfig" namespace create 0 \
+  "${CHAGUAR_BIN}/fxconfig" namespace create 0 \
     --config="${FXCONFIG_ORG0}" \
     --policy="AND('peer-org-0.member', 'peer-org-1.member')" \
     --output="${FXCONFIG_TX_DIR}/tx.json"
 
-  "${FABRIC_X_BIN}/fxconfig" tx endorse "${FXCONFIG_TX_DIR}/tx.json" \
+  "${CHAGUAR_BIN}/fxconfig" tx endorse "${FXCONFIG_TX_DIR}/tx.json" \
     --config="${FXCONFIG_ORG0}" \
     --output="${FXCONFIG_TX_DIR}/tx_org0.json" </dev/null
 
-  "${FABRIC_X_BIN}/fxconfig" tx endorse "${FXCONFIG_TX_DIR}/tx.json" \
+  "${CHAGUAR_BIN}/fxconfig" tx endorse "${FXCONFIG_TX_DIR}/tx.json" \
     --config="${FXCONFIG_ORG1}" \
     --output="${FXCONFIG_TX_DIR}/tx_org1.json" </dev/null
 
-  "${FABRIC_X_BIN}/fxconfig" tx merge \
+  "${CHAGUAR_BIN}/fxconfig" tx merge \
     "${FXCONFIG_TX_DIR}/tx_org0.json" \
     "${FXCONFIG_TX_DIR}/tx_org1.json" \
     --output="${FXCONFIG_TX_DIR}/tx_merged.json" </dev/null
 
-  "${FABRIC_X_BIN}/fxconfig" tx submit --wait \
+  "${CHAGUAR_BIN}/fxconfig" tx submit --wait \
     "${FXCONFIG_TX_DIR}/tx_merged.json" \
     --config="${FXCONFIG_ORG0}" </dev/null
 

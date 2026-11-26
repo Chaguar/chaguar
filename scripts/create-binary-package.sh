@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-# Cross-compiles the Fabric-X CLI tools for a single OS/arch and packages
+# Cross-compiles the Chaguar CLI tools for a single OS/arch and packages
 # them into a versioned tarball under release/<TARGET>/.
 #
 # Required env vars:
@@ -52,7 +52,7 @@ make release-bins GOOS="${GOOS}" GOARCH="${GOARCH}" RELEASE_DIR=release \
 cp LICENSE "${RELEASE_DIR}/"
 
 # -C cds into RELEASE_DIR first, so the archive holds relative paths (bin/, LICENSE).
-ARCHIVE="fabric-x-tools-${TARGET}-${VERSION}.tar.gz"
+ARCHIVE="chaguar-tools-${TARGET}-${VERSION}.tar.gz"
 tar -czf "${RELEASE_DIR}/${ARCHIVE}" -C "${RELEASE_DIR}" bin LICENSE
 
 echo "${RELEASE_DIR}/${ARCHIVE}"

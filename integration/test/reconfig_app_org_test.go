@@ -44,16 +44,17 @@ import (
 	"go.yaml.in/yaml/v2"
 )
 
-const (
-	defaultOrdererImage           = "hyperledger/arma-4p1s:main"
-	defaultCommitterTestNodeImage = "hyperledger/committer-test-node:main"
-)
-
-func envOrDefault(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
+// requireImageEnv returns the image named by the environment variable key.
+// The images are built locally by build-e2e.sh and exported by run-reconfig-test.sh,
+// so there is no default that could be pulled.
+func requireImageEnv(t *testing.T, key string) string {
+	t.Helper()
+	v := os.Getenv(key)
+	if v == "" {
+		t.Fatalf("%s is not set: build the images with integration/test/build-e2e.sh "+
+			"and run the test via integration/test/run-reconfig-test.sh", key)
 	}
-	return fallback
+	return v
 }
 
 // TestReconfigAppOrg is an end-to-end integration test that:
@@ -106,6 +107,9 @@ func TestReconfigAppOrg(t *testing.T) {
 func setupTestEnv(t *testing.T) (string, tc.ComposeStack, context.Context) {
 	t.Helper()
 
+	ordererImage := requireImageEnv(t, "ORDERER_IMAGE")
+	committerImage := requireImageEnv(t, "COMMITTER_IMAGE")
+
 	tmpDir, err := os.MkdirTemp("", t.Name())
 	require.NoError(t, err)
 
@@ -153,8 +157,8 @@ func setupTestEnv(t *testing.T) (string, tc.ComposeStack, context.Context) {
 	}
 
 	err = compose.WithEnv(map[string]string{
-		"ORDERER_IMAGE":   envOrDefault("ORDERER_IMAGE", defaultOrdererImage),
-		"COMMITTER_IMAGE": envOrDefault("COMMITTER_IMAGE", defaultCommitterTestNodeImage),
+		"ORDERER_IMAGE":   ordererImage,
+		"COMMITTER_IMAGE": committerImage,
 		"ARTIFACTS_DIR":   artifactsDir,
 		"STORAGE_DIR":     storageDir,
 	}).

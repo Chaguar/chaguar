@@ -63,6 +63,7 @@ func TestResolveInputs_DifferentNonces(t *testing.T) {
 
 	_, _, err := resolveInputs(ctx, &cobra.Command{}, []string{file1, file2})
 	require.ErrorContains(t, err, "same nonce")
+	require.ErrorContains(t, err, file2, "error must name the offending file")
 }
 
 func TestResolveInputs_DifferentTxIDs(t *testing.T) {
@@ -79,6 +80,7 @@ func TestResolveInputs_DifferentTxIDs(t *testing.T) {
 	_, _, err := resolveInputs(ctx, &cobra.Command{}, []string{file1, file2})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "txID")
+	require.ErrorContains(t, err, file2, "error must name the offending file")
 }
 
 func TestResolveInputs_ThreeFilesSameTxID(t *testing.T) {

@@ -8,7 +8,6 @@ package v1
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -94,11 +93,12 @@ func resolveInputs(ctx *CLIContext, cmd *cobra.Command, args []string) (transact
 			first = id
 		}
 		if id.TxID != first.TxID {
-			return transaction.ID{}, nil,
-				fmt.Errorf("all transactions must have the same txID, found %s and %s", first.TxID, id.TxID)
+			return transaction.ID{}, nil, fmt.Errorf("all transactions must have the same txID: %s has %s, %s has %s",
+				args[0], first.TxID, arg, id.TxID)
 		}
 		if !bytes.Equal(id.Nonce, first.Nonce) {
-			return transaction.ID{}, nil, errors.New("all transactions must have the same nonce")
+			return transaction.ID{}, nil,
+				fmt.Errorf("all transactions must have the same nonce: %s differs from %s", arg, args[0])
 		}
 
 		txs = append(txs, tx)

@@ -30,6 +30,9 @@ func (*JSONCodec) Encode(id transaction.ID, tx *applicationpb.Tx) ([]byte, error
 	if tx == nil {
 		return nil, errors.New("tx is nil")
 	}
+	if err := id.Validate(); err != nil {
+		return nil, err
+	}
 
 	marshaler := protojson.MarshalOptions{
 		UseProtoNames:   true,
@@ -67,12 +70,9 @@ func (*JSONCodec) Decode(data []byte) (transaction.ID, *applicationpb.Tx, error)
 		return transaction.ID{}, nil, err
 	}
 
-	if carrier.TxID == "" {
-		return transaction.ID{}, nil, errors.New("transaction has no txID")
-	}
-	if len(carrier.Nonce) == 0 {
-		return transaction.ID{}, nil,
-			errors.New("transaction has no nonce; recreate it with this version of fxconfig")
+	id := transaction.ID{TxID: carrier.TxID, Nonce: carrier.Nonce}
+	if err = id.Validate(); err != nil {
+		return transaction.ID{}, nil, err
 	}
 
 	var tx applicationpb.Tx
@@ -81,5 +81,5 @@ func (*JSONCodec) Decode(data []byte) (transaction.ID, *applicationpb.Tx, error)
 		return transaction.ID{}, nil, err
 	}
 
-	return transaction.ID{TxID: carrier.TxID, Nonce: carrier.Nonce}, &tx, nil
+	return id, &tx, nil
 }

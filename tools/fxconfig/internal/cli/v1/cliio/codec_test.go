@@ -40,6 +40,16 @@ func TestJSONCodec_Encode(t *testing.T) {
 		require.NotNil(t, result["tx"])
 	})
 
+	t.Run("error with incomplete ID", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := codec.Encode(transaction.ID{TxID: "tx-123"}, &applicationpb.Tx{})
+		require.ErrorContains(t, err, "no nonce")
+
+		_, err = codec.Encode(transaction.ID{Nonce: testNonce}, &applicationpb.Tx{})
+		require.ErrorContains(t, err, "no txID")
+	})
+
 	t.Run("error with nil transaction", func(t *testing.T) {
 		t.Parallel()
 

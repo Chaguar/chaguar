@@ -220,7 +220,7 @@ func TestOrdererClient_Broadcast_RejectsBadTxID(t *testing.T) {
 		id     transaction.ID
 		errMsg string
 	}{
-		"empty nonce": {&testSigningIdentity{}, transaction.ID{TxID: testTxID}, "require nonce"},
+		"empty nonce": {&testSigningIdentity{}, transaction.ID{TxID: testTxID}, "no nonce"},
 		"different nonce": {
 			&testSigningIdentity{}, transaction.ID{TxID: testTxID, Nonce: []byte("x")}, errWrongCreator,
 		},

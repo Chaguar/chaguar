@@ -482,6 +482,7 @@ config_group:                        # → Application/groups/<name>
 The command leaves the block unchanged if:
 
 - `peer2.yaml` cannot be parsed, has no `name` or no `config_group`, or has a key other than these two.
+- The `name` is not a string, or the `config_group` is not a map.
 - A key of `config_group` is not a field of the block structure.
 - A certificate or CRL file can't be read, or doesn't hold what its field needs (see
   **Certificates**).
@@ -500,11 +501,44 @@ Remove an application organization.
 fxadmin modify app remove peer2 --block next.pb
 ```
 
+The command removes the org's whole config group (`channel_group.groups.Application.groups.<org>`):
+its MSP, its policies and every other value it holds. Nothing else in the block changes.
+
+**What the admins are responsible for.** A config update is accepted when the admins that its
+policies require sign it, and the new config is valid. Nothing checks what the rest of the config
+still refers to the removed org by: that is the responsibility of the admins who sign
+the update. The command helps by warning about these references, and it rejects the one removal that
+would open the channel to anyone (see **When the command fails**).
+
+**References to the org.** The command keeps what the rest of the config still refers to the org by,
+and warns about it, naming each reference:
+
+- an ACL of the `Application` group that refers to one of the org's policies, such as
+  `/Channel/Application/<org>/Readers`. The ACL then denies every request;
+- a signature policy that names the org's MSP ID, when no other org has that MSP ID. The org can then
+  no longer satisfy the policy, for example `AND('org1.admin', '<org>.admin')`.
+
+Update them in a later config update. Each config update is checked against the policies of the
+config before it, so the later update works as long as the policy that guards the change, usually
+`Admins`, does not need the removed org. A policy that guards changes and needs the org must be
+changed before the org is removed, in a config update of its own: once the org is gone, that policy
+can no longer be satisfied, and nothing it guards can be changed again.
+
 **Arguments**
 
-| Argument | Required | Description                             |
-|----------| :------: |-----------------------------------------|
-| `<org>` | yes | Application organization name to remove |
+| Argument | Required | Description                                       |
+|----------| :------: |---------------------------------------------------|
+| `<org>` | yes | The org's name under `Application`, not its MSP ID |
+
+**When the command fails**
+
+The command leaves the block unchanged if:
+
+- The block has no `Application` group, or no org named `<org>` in it. The error lists the orgs of
+  the group, or names the org whose MSP ID `<org>` is.
+- `<org>` is the only application org. With no org, the policies of the `Application` group would
+  be satisfied by anyone, even without a signature.
+- The edited config is not a valid channel config.
 
 ---
 
